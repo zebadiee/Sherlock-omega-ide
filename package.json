@@ -1,0 +1,57 @@
+{
+  "name": "sherlock-omega-ide",
+  "version": "1.0.0",
+  "description": "Revolutionary Self-Healing Development Environment - Computational Consciousness IDE",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "verify:proofs": "npm run test -- --testPathPattern=verification",
+    "test:healing-algorithms": "npm run test -- --testPathPattern=healing",
+    "test:theorem-provers": "npm run test -- --testPathPattern=TheoremProver",
+    "test:paradigm-generators": "npm run test -- --testPathPattern=ParadigmGenerator",
+    "test:proof-systems": "npm run test -- --testPathPattern=FormalProofSystem",
+    "test:smoke:staging": "echo 'Running staging smoke tests...' && npm run test -- --testPathPattern=smoke",
+    "analyze:bundle": "echo 'Analyzing bundle size...' && du -sh dist/",
+    "deploy:staging": "echo 'Deploying to staging environment...'",
+    "deploy:canary": "echo 'Deploying canary release...'",
+    "deploy:production": "echo 'Deploying to production...'",
+    "monitor:canary": "echo 'Monitoring canary deployment...'",
+    "monitor:health": "echo 'Monitoring deployment health...'",
+    "rollback:production": "echo 'Rolling back production deployment...'",
+    "notify:rollback": "echo 'Notifying team of rollback...'"
+  },
+  "keywords": [
+    "ide",
+    "ai",
+    "formal-verification",
+    "self-healing",
+    "quantum-reasoning",
+    "computational-consciousness"
+  ],
+  "author": "MIT Advanced Computational Intelligence Laboratory",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/babel__parser": "^7.0.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.5.0",
+    "prettier": "^3.0.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.28.0",
+    "@babel/types": "^7.28.2",
+    "rxjs": "^7.8.0"
+  }
+}

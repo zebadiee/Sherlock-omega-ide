@@ -1,0 +1,83 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "import",
+    "security"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "@typescript-eslint/recommended",
+    "@typescript-eslint/recommended-requiring-type-checking"
+  ],
+  "rules": {
+    // TypeScript specific rules for computational immunity
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/prefer-readonly": "error",
+    "@typescript-eslint/prefer-readonly-parameter-types": "warn",
+    "@typescript-eslint/strict-boolean-expressions": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/await-thenable": "error",
+    "@typescript-eslint/no-misused-promises": "error",
+    
+    // Code complexity and maintainability
+    "complexity": ["error", 10],
+    "max-lines-per-function": ["error", 50],
+    "max-depth": ["error", 4],
+    "max-params": ["error", 4],
+    
+    // Import organization
+    "import/order": ["error", {
+      "groups": [
+        "builtin",
+        "external",
+        "internal",
+        "parent",
+        "sibling",
+        "index"
+      ],
+      "newlines-between": "always",
+      "alphabetize": {
+        "order": "asc",
+        "caseInsensitive": true
+      }
+    }],
+    
+    // Security rules
+    "security/detect-object-injection": "error",
+    "security/detect-non-literal-regexp": "error",
+    "security/detect-unsafe-regex": "error",
+    
+    // General code quality
+    "no-console": "warn",
+    "no-debugger": "error",
+    "no-alert": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+    "eqeqeq": "error"
+  },
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/__tests__/**/*.ts"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "max-lines-per-function": "off"
+      }
+    }
+  ]
+}
