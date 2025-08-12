@@ -94,6 +94,8 @@ export class PerformanceAnalytics {
   private events: FrictionEvent[] = [];
   private flushTimer?: NodeJS.Timeout;
   private startTime: number = Date.now();
+  private lastFlushTime: number = 0;
+  private readonly MIN_FLUSH_INTERVAL = 2000; // Minimum 2 seconds between flushes
 
   constructor(config: TelemetryConfig) {
     this.config = config;
@@ -666,6 +668,13 @@ ${historical.recommendations.map((rec: string) => `- ${rec}`).join('\n')}
 
   private async flush(): Promise<void> {
     if (this.metrics.length === 0 && this.events.length === 0) return;
+    
+    // Debounce: prevent flooding by enforcing minimum interval between flushes
+    const now = Date.now();
+    if (now - this.lastFlushTime < this.MIN_FLUSH_INTERVAL) {
+      return; // Skip this flush, too soon since last one
+    }
+    this.lastFlushTime = now;
 
     try {
       if (this.config.endpoint) {
