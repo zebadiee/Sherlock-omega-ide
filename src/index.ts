@@ -1,184 +1,116 @@
-/**
- * Sherlock Ω (Omega) - Revolutionary Self-Healing Development Environment
- * Main entry point for the Computational Consciousness IDE
- */
-
-export { SherlockOmegaCore, UserAction, UserActionType, EnhancedResult } from './core/SherlockOmegaCore';
-
-export {
-  IOmniscientDevelopmentMonitor,
-  IProvablyCorrectCodeHealer,
-  IDeveloperMindInterface,
-  IZeroFrictionProtocol,
-  IUniversalResolutionEngine,
-  PreventiveActionPlan,
-  PreventiveAction,
-  ActionType,
-  CertifiedFix,
-  FrictionPoint,
-  FrictionType,
-  GuaranteedResolution,
-  ResolutionPath
-} from './core/interfaces';
-
-export {
-  ComputationalImmunitySystem,
-  UniversalResolutionPromise,
-  OmniscientDiagnosticGrid,
-  ProvablyCorrectCodeGeneration,
-  DeveloperMindInterface,
-  SensorType,
-  SensorInterface,
-  SensorResult,
-  SensorStatus,
-  ComputationalIssue,
-  ProblemType,
-  SeverityLevel,
-  FixCandidate,
-  ParadigmType,
-  FormalProof,
-  ProofSystem,
-  DeveloperIntent,
-  Goal,
-  GoalType
-} from './types/core';
-
-// Export friction detection and elimination system
-export {
-  IntegratedFrictionProtocol,
-  ActionableItem,
-  IntegratedProtocolResult,
-  UIMetadata,
-  ActionExecutionResult,
-  UIStats,
-  IntegratedContext
-} from './friction/IntegratedFrictionProtocol';
-
-// Export thought completion system
-export {
-  ThoughtCompletion,
-  CompletionSuggestion,
-  CompletionType,
-  CompletionContext,
-  CompletionMetadata,
-  ThoughtCompletionResult
-} from './intent/ThoughtCompletion';
-
-export {
-  ThoughtCompletionFrictionDetector,
-  ThoughtCompletionFrictionPoint,
-  ThoughtCompletionConfig,
-  DEFAULT_THOUGHT_COMPLETION_CONFIG
-} from './friction/ThoughtCompletionFrictionDetector';
-
-// Export AI integration system
-export {
-  AIProvider,
-  AIProviderManager,
-  OpenAIProvider,
-  AnthropicProvider,
-  AIModel,
-  AICapability,
-  AIRequest,
-  AIResponse,
-  AIProviderConfig
-} from './ai/AIProvider';
-
-// Export enhanced thought completion
-export {
-  EnhancedThoughtCompletion,
-  EnhancedCompletionConfig,
-  AICompletionSuggestion
-} from './intent/EnhancedThoughtCompletion';
-
-// Export performance analytics
-export {
-  PerformanceAnalytics,
-  PerformanceMetric,
-  FrictionEvent,
-  UserSession,
-  FlowStateMetrics,
-  ProductivityMetrics,
-  SystemHealthMetrics,
-  TelemetryConfig
-} from './analytics/PerformanceAnalytics';
-
-// Export integration system
-export {
-  SherlockOmegaIntegration,
-  SherlockOmegaConfig,
-  SystemStatus,
-  createSherlockOmega,
-  getSherlockOmega,
-  initializeSherlockOmega
-} from './integration/SherlockOmegaIntegration';
+#!/usr/bin/env node
 
 /**
- * Create a new Sherlock Ω instance with default configuration
- * This is a factory function for easy instantiation
+ * Sherlock Ω - Zero-Friction Development Environment
+ * Main Entry Point for Development and Production
  */
-export function createSherlockOmega(): SherlockOmegaCore {
-  // For now, we'll create with null implementations
-  // These will be replaced with actual implementations in subsequent tasks
-  const nullMonitor = null as any;
-  const nullHealer = null as any;
-  const nullIntent = null as any;
-  const nullFriction = null as any;
-  const nullResolution = null as any;
 
-  return new SherlockOmegaCore(
-    nullMonitor,
-    nullHealer,
-    nullIntent,
-    nullFriction,
-    nullResolution
-  );
+import { createSherlockOmega } from './integration/SherlockOmegaIntegration';
+
+async function main() {
+  console.log('🧠 Starting Sherlock Ω - Zero-Friction Development Environment...');
+  console.log('');
+
+  try {
+    // Create Sherlock Ω instance with full features enabled
+    const sherlock = createSherlockOmega({
+      features: {
+        enableAI: true,
+        enableAnalytics: true,
+        enableEnhancedCompletion: true,
+        enableRealTimeMonitoring: true,
+        enablePredictiveActions: true
+      }
+    });
+
+    console.log('🚀 Initializing system components...');
+    await sherlock.start();
+    
+    console.log('');
+    console.log('✅ Sherlock Ω is now active!');
+    console.log('');
+    console.log('🎯 Zero-friction development features:');
+    console.log('  • Real-time friction detection');
+    console.log('  • Automatic dependency installation');
+    console.log('  • AI-powered thought completion');
+    console.log('  • Predictive action planning');
+    console.log('  • Performance analytics');
+    console.log('');
+    console.log('📊 System Status:');
+    
+    // Get and display system status
+    const status = await sherlock.getSystemStatus();
+    console.log(`  • Overall Health: ${status.overall}`);
+    console.log(`  • Response Time: ${status.metrics.responseTime.toFixed(0)}ms`);
+    console.log(`  • Memory Usage: ${status.metrics.memoryUsage.toFixed(1)}%`);
+    console.log(`  • Uptime: ${Math.floor(status.metrics.uptime / 1000)}s`);
+    console.log('');
+    console.log('🔗 Connect your editor to start experiencing zero-friction development!');
+    console.log('');
+    console.log('Press Ctrl+C to stop Sherlock Ω');
+
+    // Keep the process alive and handle graceful shutdown
+    process.on('SIGINT', async () => {
+      console.log('');
+      console.log('🛑 Shutting down Sherlock Ω...');
+      
+      try {
+        await sherlock.stop();
+        console.log('✅ Sherlock Ω stopped gracefully');
+        process.exit(0);
+      } catch (error) {
+        console.error('❌ Error during shutdown:', error);
+        process.exit(1);
+      }
+    });
+
+    process.on('SIGTERM', async () => {
+      console.log('');
+      console.log('🛑 Received SIGTERM, shutting down...');
+      
+      try {
+        await sherlock.stop();
+        process.exit(0);
+      } catch (error) {
+        console.error('❌ Error during shutdown:', error);
+        process.exit(1);
+      }
+    });
+
+    // Keep process alive
+    await new Promise(() => {}); // Infinite promise
+
+  } catch (error) {
+    console.error('');
+    console.error('❌ Failed to start Sherlock Ω:', error);
+    console.error('');
+    
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      if (error.stack) {
+        console.error('Stack trace:', error.stack);
+      }
+    }
+    
+    process.exit(1);
+  }
 }
 
-/**
- * Version information
- */
-export const VERSION = '1.0.0';
-export const CODENAME = 'Computational Consciousness';
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
 
-/**
- * System constants
- */
-export const SHERLOCK_OMEGA_CONSTANTS = {
-  // Core guarantees
-  IMMUNITY_GUARANTEE: 'ABSOLUTE' as const,
-  RESOLUTION_THEOREM: 'EVERY_COMPUTABLE_PROBLEM_HAS_SOLUTION' as const,
-  TIME_BOUND: 'FINITE' as const,
-  
-  // Performance targets
-  MAX_RESPONSE_TIME_MS: 100,
-  MIN_CONFIDENCE_THRESHOLD: 0.8,
-  MIN_INTENT_ALIGNMENT: 0.7,
-  
-  // Evolution parameters
-  EVOLUTION_CYCLE_INTERVAL_MS: 5 * 60 * 1000, // 5 minutes
-  LEARNING_RATE: 0.1,
-  ADAPTABILITY_FACTOR: 0.8,
-  MEMORY_CAPACITY: 1000000,
-  
-  // Quantum reasoning parameters
-  QUANTUM_ENTANGLEMENT: true,
-  INTERFERENCE_THRESHOLD: 0.5,
-  SUPERPOSITION_STATES: 8,
-  
-  // Formal verification parameters
-  PROOF_CONFIDENCE_THRESHOLD: 0.95,
-  THEOREM_PROVER_TIMEOUT_MS: 10000,
-  MAX_PROOF_DEPTH: 100
-} as const;
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
 
-console.log(`
-🧠 Sherlock Ω (Omega) v${VERSION} - ${CODENAME}
-   Revolutionary Self-Healing Development Environment
-   
-   "Making computational friction extinct through 
-    omniscient monitoring, provable healing, and 
-    continuous evolution."
-    
-   MIT Advanced Computational Intelligence Laboratory
-`);
+// Start the application
+if (require.main === module) {
+  main();
+}
+
+export { main };

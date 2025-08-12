@@ -3,6 +3,8 @@
  * Measures real-world friction reduction and system effectiveness
  */
 
+import { TelemetryService, TelemetryEventType, DEFAULT_TELEMETRY_CONFIG } from './TelemetryService';
+
 export interface PerformanceMetric {
   id: string;
   name: string;
@@ -96,9 +98,19 @@ export class PerformanceAnalytics {
   private startTime: number = Date.now();
   private lastFlushTime: number = 0;
   private readonly MIN_FLUSH_INTERVAL = 2000; // Minimum 2 seconds between flushes
+  private telemetryService: TelemetryService;
 
   constructor(config: TelemetryConfig) {
     this.config = config;
+    
+    // Initialize telemetry service
+    this.telemetryService = new TelemetryService({
+      ...DEFAULT_TELEMETRY_CONFIG,
+      enabled: config.enabled,
+      endpoint: config.endpoint,
+      anonymize: config.anonymize,
+      environment: process.env.NODE_ENV as any || 'development'
+    });
     
     if (config.enabled) {
       this.initializeAnalytics();
@@ -149,6 +161,9 @@ export class PerformanceAnalytics {
       }
     };
 
+    // Start telemetry session
+    this.telemetryService.startSession(sessionId);
+
     this.recordMetric({
       id: this.generateId(),
       name: 'session_started',
@@ -173,6 +188,9 @@ export class PerformanceAnalytics {
 
     // Calculate final metrics
     this.calculateSessionMetrics();
+
+    // End telemetry session
+    this.telemetryService.endSession();
 
     this.recordMetric({
       id: this.generateId(),
@@ -215,6 +233,21 @@ export class PerformanceAnalytics {
 
     // Record specific metrics based on event type
     this.recordEventMetrics(frictionEvent);
+
+    // Send to telemetry service
+    if (frictionEvent.type === 'detected') {
+      this.telemetryService.recordFrictionDetected(
+        frictionEvent.frictionType,
+        frictionEvent.severity,
+        frictionEvent.metadata
+      );
+    } else if (frictionEvent.type === 'eliminated') {
+      this.telemetryService.recordFrictionEliminated(
+        frictionEvent.frictionType,
+        frictionEvent.resolutionTime || 0,
+        frictionEvent.metadata.confidence || 0.8
+      );
+    }
   }
 
   /**
@@ -803,5 +836,8 @@ ${historical.recommendations.map((rec: string) => `- ${rec}`).join('\n')}
     
     // Final flush
     this.flush();
+    
+    // Destroy telemetry service
+    this.telemetryService.destroy();
   }
 }

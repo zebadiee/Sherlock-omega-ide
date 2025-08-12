@@ -1,0 +1,329 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Sherlock Ω - Zero-Friction Development Analytics",
+    "tags": ["sherlock-omega", "friction", "productivity"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Friction Detection Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(sherlock_omega_friction_detected_total[5m]))",
+            "legendFormat": "Detections/sec"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 0.1},
+                {"color": "red", "value": 0.5}
+              ]
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Friction Elimination Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(sherlock_omega_friction_eliminated_total[5m]))",
+            "legendFormat": "Eliminations/sec"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 0.05},
+                {"color": "green", "value": 0.1}
+              ]
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Average Response Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(sherlock_omega_response_time_milliseconds)",
+            "legendFormat": "Avg Response Time"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 100},
+                {"color": "red", "value": 500}
+              ]
+            },
+            "unit": "ms"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Flow State Percentage",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(sherlock_omega_flow_state_percentage)",
+            "legendFormat": "Flow State %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 60},
+                {"color": "green", "value": 80}
+              ]
+            },
+            "unit": "percent",
+            "max": 100,
+            "min": 0
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Friction Types Over Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum by (friction_type) (rate(sherlock_omega_friction_detected_total[5m]))",
+            "legendFormat": "{{friction_type}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {"mode": "none", "group": "A"},
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "scaleDistribution": {"type": "linear"},
+              "hideFrom": {"legend": false, "tooltip": false, "vis": false},
+              "thresholdsStyle": {"mode": "off"}
+            },
+            "color": {"mode": "palette-classic"},
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Elimination Time Distribution",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(sherlock_omega_elimination_time_milliseconds_bucket[5m])) by (le))",
+            "legendFormat": "50th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(sherlock_omega_elimination_time_milliseconds_bucket[5m])) by (le))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(sherlock_omega_elimination_time_milliseconds_bucket[5m])) by (le))",
+            "legendFormat": "99th percentile"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "ms"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 7,
+        "title": "User Satisfaction Score",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "avg(sherlock_omega_user_satisfaction)",
+            "legendFormat": "Satisfaction"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 3},
+                {"color": "green", "value": 4}
+              ]
+            },
+            "unit": "none",
+            "max": 5,
+            "min": 1
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "Time Saved (Daily)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(increase(sherlock_omega_time_saved_milliseconds[24h])) / 1000 / 60",
+            "legendFormat": "Minutes Saved"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 30},
+                {"color": "green", "value": 60}
+              ]
+            },
+            "unit": "m"
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 16}
+      },
+      {
+        "id": 9,
+        "title": "Active Sessions",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(sherlock_omega_active_sessions)",
+            "legendFormat": "Active Sessions"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 16}
+      },
+      {
+        "id": 10,
+        "title": "Error Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(sherlock_omega_errors_total[5m]))",
+            "legendFormat": "Errors/sec"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 11,
+        "title": "Platform Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (platform) (sherlock_omega_sessions_total)",
+            "legendFormat": "{{platform}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "environment",
+          "type": "query",
+          "query": "label_values(sherlock_omega_friction_detected_total, environment)",
+          "refresh": 1,
+          "includeAll": true,
+          "allValue": ".*"
+        },
+        {
+          "name": "friction_type",
+          "type": "query",
+          "query": "label_values(sherlock_omega_friction_detected_total, friction_type)",
+          "refresh": 1,
+          "includeAll": true,
+          "allValue": ".*"
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "prometheus",
+          "expr": "sherlock_omega_deployment_timestamp",
+          "titleFormat": "Deployment",
+          "textFormat": "Version {{version}} deployed"
+        }
+      ]
+    }
+  }
+}
