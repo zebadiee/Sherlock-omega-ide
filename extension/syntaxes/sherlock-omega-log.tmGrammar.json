@@ -1,0 +1,41 @@
+{
+  "name": "Sherlock Ω Log",
+  "scopeName": "text.log.sherlock-omega",
+  "patterns": [
+    {
+      "name": "keyword.control.sherlock-omega",
+      "match": "\\\\b(🧠|⚡|🔍|🔧|📊|✅|❌|⚠️|🎯|🚀)\\\\b"
+    },
+    {
+      "name": "string.quoted.double.sherlock-omega",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.sherlock-omega",
+          "match": "\\\\\\\\."
+        }
+      ]
+    },
+    {
+      "name": "comment.line.sherlock-omega",
+      "match": "^\\\\s*#.*$"
+    },
+    {
+      "name": "constant.numeric.sherlock-omega",
+      "match": "\\\\b\\\\d+(\\\\.\\\\d+)?\\\\b"
+    },
+    {
+      "name": "entity.name.function.sherlock-omega",
+      "match": "\\\\b(FRICTION_DETECTED|FRICTION_ELIMINATED|INTENT_ANALYZED|PROOF_GENERATED)\\\\b"
+    },
+    {
+      "name": "support.type.sherlock-omega",
+      "match": "\\\\b(SYNTAX|DEPENDENCY|PERFORMANCE|ARCHITECTURE|TESTING)\\\\b"
+    },
+    {
+      "name": "variable.parameter.sherlock-omega",
+      "match": "\\\\b(confidence|severity|alignment):\\\\s*\\\\d+(\\\\.\\\\d+)?%?"
+    }
+  ]
+}

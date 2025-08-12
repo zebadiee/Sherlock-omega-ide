@@ -71,6 +71,48 @@ export {
   DEFAULT_THOUGHT_COMPLETION_CONFIG
 } from './friction/ThoughtCompletionFrictionDetector';
 
+// Export AI integration system
+export {
+  AIProvider,
+  AIProviderManager,
+  OpenAIProvider,
+  AnthropicProvider,
+  AIModel,
+  AICapability,
+  AIRequest,
+  AIResponse,
+  AIProviderConfig
+} from './ai/AIProvider';
+
+// Export enhanced thought completion
+export {
+  EnhancedThoughtCompletion,
+  EnhancedCompletionConfig,
+  AICompletionSuggestion
+} from './intent/EnhancedThoughtCompletion';
+
+// Export performance analytics
+export {
+  PerformanceAnalytics,
+  PerformanceMetric,
+  FrictionEvent,
+  UserSession,
+  FlowStateMetrics,
+  ProductivityMetrics,
+  SystemHealthMetrics,
+  TelemetryConfig
+} from './analytics/PerformanceAnalytics';
+
+// Export integration system
+export {
+  SherlockOmegaIntegration,
+  SherlockOmegaConfig,
+  SystemStatus,
+  createSherlockOmega,
+  getSherlockOmega,
+  initializeSherlockOmega
+} from './integration/SherlockOmegaIntegration';
+
 /**
  * Create a new Sherlock Ω instance with default configuration
  * This is a factory function for easy instantiation

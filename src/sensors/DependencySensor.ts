@@ -384,11 +384,11 @@ export class DependencySensor extends BaseSensor {
     this.packageInfo = packageInfo;
     
     // Update analyzers with package info
-    for (const analyzer of this.analyzers.values()) {
+    this.analyzers.forEach(analyzer => {
       if (analyzer instanceof TypeScriptDependencyAnalyzer) {
         (analyzer as any).packageInfo = packageInfo;
       }
-    }
+    });
 
     console.log(`📋 Updated package info: ${packageInfo.name}@${packageInfo.version}`);
   }
@@ -428,20 +428,20 @@ export class DependencySensor extends BaseSensor {
     const node = this.dependencyGraph.get(filePath);
     if (node) {
       // Remove this node from dependents of its dependencies
-      for (const depPath of node.dependencies) {
+      node.dependencies.forEach(depPath => {
         const depNode = this.dependencyGraph.get(depPath);
         if (depNode) {
           depNode.dependents.delete(filePath);
         }
-      }
+      });
 
       // Remove this node from dependencies of its dependents
-      for (const depPath of node.dependents) {
+      node.dependents.forEach(depPath => {
         const depNode = this.dependencyGraph.get(depPath);
         if (depNode) {
           depNode.dependencies.delete(filePath);
         }
-      }
+      });
 
       this.dependencyGraph.delete(filePath);
       console.log(`🗑️ Removed ${filePath} from dependency monitoring`);
@@ -454,13 +454,13 @@ export class DependencySensor extends BaseSensor {
   public async getDependencyIssues(): Promise<ComputationalIssue[]> {
     const issues: ComputationalIssue[] = [];
 
-    for (const [filePath, node] of this.dependencyGraph) {
+    this.dependencyGraph.forEach((node, filePath) => {
       // Check for missing dependencies
-      for (const [specifier, importInfo] of node.imports) {
+      node.imports.forEach((importInfo, specifier) => {
         if (!importInfo.isResolved) {
           issues.push(this.createMissingDependencyIssue(filePath, importInfo, specifier));
         }
-      }
+      });
 
       // Check for circular dependencies
       const circularDeps = this.detectCircularDependencies(filePath);
@@ -475,7 +475,7 @@ export class DependencySensor extends BaseSensor {
           issues.push(this.createUnusedDependencyIssue(filePath, unusedDep));
         }
       }
-    }
+    });
 
     return issues;
   }
@@ -495,29 +495,29 @@ export class DependencySensor extends BaseSensor {
     let circularDependencies = 0;
     let missingDependencies = 0;
 
-    for (const node of this.dependencyGraph.values()) {
+    this.dependencyGraph.forEach(node => {
       totalDependencies += node.dependencies.size;
       
-      for (const [, importInfo] of node.imports) {
+      node.imports.forEach(importInfo => {
         if (!importInfo.isResolved) {
           missingDependencies++;
         }
-      }
+      });
 
       // Count external dependencies
-      for (const depPath of node.dependencies) {
+      node.dependencies.forEach(depPath => {
         if (depPath.startsWith('node_modules/') || depPath.startsWith('node:')) {
           externalDependencies++;
         }
-      }
-    }
+      });
+    });
 
     // Count circular dependencies
-    for (const filePath of this.dependencyGraph.keys()) {
+    Array.from(this.dependencyGraph.keys()).forEach(filePath => {
       if (this.detectCircularDependencies(filePath).length > 0) {
         circularDependencies++;
       }
-    }
+    });
 
     return {
       totalFiles: this.dependencyGraph.size,
@@ -550,7 +550,7 @@ export class DependencySensor extends BaseSensor {
   private detectLanguage(filePath: string): string {
     const extension = filePath.toLowerCase().substring(filePath.lastIndexOf('.'));
     
-    for (const [language, analyzer] of this.analyzers) {
+    for (const [language, analyzer] of Array.from(this.analyzers.entries())) {
       if (analyzer.extensions.includes(extension)) {
         return language;
       }
@@ -634,7 +634,7 @@ export class DependencySensor extends BaseSensor {
 
     const node = this.dependencyGraph.get(filePath);
     if (node) {
-      for (const depPath of node.dependencies) {
+      for (const depPath of Array.from(node.dependencies)) {
         const cycle = this.detectCircularDependencies(depPath, new Set(visited), [...path]);
         if (cycle.length > 0) {
           return cycle;
