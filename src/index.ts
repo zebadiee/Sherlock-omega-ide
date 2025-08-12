@@ -43,6 +43,34 @@ export {
   GoalType
 } from './types/core';
 
+// Export friction detection and elimination system
+export {
+  IntegratedFrictionProtocol,
+  ActionableItem,
+  IntegratedProtocolResult,
+  UIMetadata,
+  ActionExecutionResult,
+  UIStats,
+  IntegratedContext
+} from './friction/IntegratedFrictionProtocol';
+
+// Export thought completion system
+export {
+  ThoughtCompletion,
+  CompletionSuggestion,
+  CompletionType,
+  CompletionContext,
+  CompletionMetadata,
+  ThoughtCompletionResult
+} from './intent/ThoughtCompletion';
+
+export {
+  ThoughtCompletionFrictionDetector,
+  ThoughtCompletionFrictionPoint,
+  ThoughtCompletionConfig,
+  DEFAULT_THOUGHT_COMPLETION_CONFIG
+} from './friction/ThoughtCompletionFrictionDetector';
+
 /**
  * Create a new Sherlock Ω instance with default configuration
  * This is a factory function for easy instantiation

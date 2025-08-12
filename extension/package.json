@@ -1,0 +1,195 @@
+{
+  "name": "sherlock-omega-ide",
+  "displayName": "Sherlock Ω - Zero-Friction Development",
+  "description": "Revolutionary AI-powered development environment that eliminates dependency friction and maintains perfect flow state",
+  "version": "1.0.0",
+  "publisher": "sherlock-omega",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning",
+    "Linters",
+    "Formatters",
+    "Snippets"
+  ],
+  "keywords": [
+    "ai",
+    "dependencies",
+    "zero-friction",
+    "auto-install",
+    "flow-state",
+    "computational-consciousness",
+    "sherlock-omega"
+  ],
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascriptreact",
+    "onLanguage:json",
+    "onCommand:sherlock-omega.activate"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sherlock-omega.activate",
+        "title": "🧠 Activate Sherlock Ω",
+        "category": "Sherlock Ω"
+      },
+      {
+        "command": "sherlock-omega.runFrictionDetection",
+        "title": "🔍 Run Friction Detection",
+        "category": "Sherlock Ω"
+      },
+      {
+        "command": "sherlock-omega.showActionPlan",
+        "title": "📋 Show Action Plan",
+        "category": "Sherlock Ω"
+      },
+      {
+        "command": "sherlock-omega.installAllDependencies",
+        "title": "📦 Install All Missing Dependencies",
+        "category": "Sherlock Ω"
+      },
+      {
+        "command": "sherlock-omega.toggleZeroFriction",
+        "title": "⚡ Toggle Zero-Friction Mode",
+        "category": "Sherlock Ω"
+      },
+      {
+        "command": "sherlock-omega.showMetrics",
+        "title": "📊 Show Zero-Friction Metrics",
+        "category": "Sherlock Ω"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "sherlock-omega.runFrictionDetection",
+          "when": "editorLangId == typescript || editorLangId == javascript",
+          "group": "sherlock-omega"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sherlock-omega.installAllDependencies",
+          "when": "resourceFilename == package.json",
+          "group": "sherlock-omega"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "sherlock-omega-action-plan",
+          "name": "🧠 Sherlock Ω Action Plan",
+          "when": "sherlock-omega.activated"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "sherlock-omega",
+          "title": "Sherlock Ω",
+          "icon": "$(brain)"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Sherlock Ω",
+      "properties": {
+        "sherlock-omega.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Sherlock Ω zero-friction development"
+        },
+        "sherlock-omega.autoInstallDependencies": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically install missing dependencies"
+        },
+        "sherlock-omega.packageManager": {
+          "type": "string",
+          "enum": ["auto", "npm", "yarn", "pnpm"],
+          "default": "auto",
+          "description": "Preferred package manager (auto-detect if 'auto')"
+        },
+        "sherlock-omega.detectionDelay": {
+          "type": "number",
+          "default": 500,
+          "description": "Delay in milliseconds before running friction detection"
+        },
+        "sherlock-omega.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notifications for friction elimination"
+        },
+        "sherlock-omega.confidenceThreshold": {
+          "type": "number",
+          "default": 0.8,
+          "minimum": 0.1,
+          "maximum": 1.0,
+          "description": "Minimum confidence threshold for auto-actions"
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "sherlock-omega-log",
+        "aliases": ["Sherlock Ω Log"],
+        "extensions": [".sherlock.log"]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "sherlock-omega-log",
+        "scopeName": "text.log.sherlock-omega",
+        "path": "./syntaxes/sherlock-omega-log.tmGrammar.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "typescript": "^4.9.4",
+    "@vscode/test-electron": "^2.2.0",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "sherlock-omega-ide": "file:../",
+    "vscode-languageclient": "^8.0.2",
+    "vscode-languageserver": "^8.0.2",
+    "vscode-languageserver-textdocument": "^1.0.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zebadiee/Sherlock-omega-ide.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zebadiee/Sherlock-omega-ide/issues"
+  },
+  "homepage": "https://sherlock-omega.dev",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#667eea",
+    "theme": "dark"
+  }
+}

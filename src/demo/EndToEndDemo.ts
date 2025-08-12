@@ -160,8 +160,9 @@ export const processData = (data: any) => {
     id: generateId(),
     processed: true,
     data
-  // Missing closing brace
-`;
+  }; // Fixed missing closing brace
+};
+`
           }
         ],
         expectedIssues: ['lodash', 'moment', '@mui/material', 'axios', 'uuid', 'syntax-error']

@@ -17,6 +17,8 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "baseUrl": "./src",
     "paths": {
       // Core system paths
@@ -55,6 +57,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "src/ui/ActionPlanSidebar.tsx"
   ]
 }

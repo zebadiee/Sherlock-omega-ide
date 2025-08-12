@@ -67,3 +67,11 @@ export {
   ZeroFrictionConfig,
   DEFAULT_ZERO_FRICTION_CONFIG
 } from './ZeroFrictionProtocol';
+
+// Thought completion friction detection (Task 6.4)
+export {
+  ThoughtCompletionFrictionDetector,
+  ThoughtCompletionFrictionPoint,
+  ThoughtCompletionConfig,
+  DEFAULT_THOUGHT_COMPLETION_CONFIG
+} from './ThoughtCompletionFrictionDetector';
