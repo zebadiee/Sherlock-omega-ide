@@ -3,7 +3,46 @@
  * Displays actionable friction elimination items in the sidebar
  */
 import * as vscode from 'vscode';
-import { ActionableItem, IntegratedFrictionProtocol } from 'sherlock-omega-ide';
+interface ActionableItem {
+    id: string;
+    type: 'install' | 'update' | 'fix' | 'refactor';
+    title: string;
+    description: string;
+    severity: 'low' | 'medium' | 'high';
+    autoExecutable: boolean;
+    command?: string;
+    filePath?: string;
+    line?: number;
+    column?: number;
+    metadata: {
+        frictionType: string;
+        confidence: number;
+        estimatedTime: number;
+        dependencies?: string[];
+    };
+}
+declare class IntegratedFrictionProtocol {
+    runIntegratedDetection(context: any): Promise<{
+        actionableItems: ActionableItem[];
+        success: boolean;
+    }>;
+    executeAction(actionId: string): Promise<{
+        success: boolean;
+        message: string;
+        error: undefined;
+    }>;
+    getUIStats(): {
+        overall: {
+            totalDetected: number;
+            totalEliminated: number;
+            eliminationRate: number;
+            averageExecutionTime: number;
+        };
+        dependencies: {
+            packageManager: string;
+        };
+    };
+}
 export declare class SherlockOmegaActionPlanProvider implements vscode.TreeDataProvider<ActionPlanItem> {
     private protocol;
     private _onDidChangeTreeData;
@@ -65,4 +104,5 @@ export declare class ActionPlanItem extends vscode.TreeItem {
     readonly contextValue: string;
     constructor(label: string, description: string, collapsibleState: vscode.TreeItemCollapsibleState, contextValue: string);
 }
+export {};
 //# sourceMappingURL=actionPlanProvider.d.ts.map

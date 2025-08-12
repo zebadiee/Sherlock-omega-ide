@@ -4,7 +4,53 @@
  */
 
 import * as vscode from 'vscode';
-import { IntegratedFrictionProtocol, ActionableItem } from 'sherlock-omega-ide';
+// Temporarily use local interfaces until main library is fully built
+interface ActionableItem {
+  id: string;
+  type: 'install' | 'update' | 'fix' | 'refactor';
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  autoExecutable: boolean;
+  command?: string;
+  filePath?: string;
+  line?: number;
+  column?: number;
+  metadata: {
+    frictionType: string;
+    confidence: number;
+    estimatedTime: number;
+    dependencies?: string[];
+  };
+}
+
+// Mock protocol for now
+class IntegratedFrictionProtocol {
+  async runIntegratedDetection(context: any) {
+    return {
+      actionableItems: [] as ActionableItem[],
+      success: true
+    };
+  }
+  
+  async executeAction(actionId: string) {
+    return { success: true, message: 'Action executed', error: undefined };
+  }
+  
+  getUIStats() {
+    return {
+      overall: {
+        totalDetected: 0,
+        totalEliminated: 0,
+        eliminationRate: 0,
+        averageExecutionTime: 0
+      },
+      dependencies: {
+        packageManager: 'npm'
+      }
+    };
+  }
+}
 import { SherlockOmegaActionPlanProvider } from './actionPlanProvider';
 import { SherlockOmegaLanguageClient } from './languageClient';
 import { SherlockOmegaStatusBar } from './statusBar';

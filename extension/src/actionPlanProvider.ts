@@ -4,7 +4,40 @@
  */
 
 import * as vscode from 'vscode';
-import { ActionableItem, IntegratedFrictionProtocol } from 'sherlock-omega-ide';
+// Temporarily use local interfaces until main library is fully built
+interface ActionableItem {
+  id: string;
+  type: 'install' | 'update' | 'fix' | 'refactor';
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  autoExecutable: boolean;
+  command?: string;
+  filePath?: string;
+  line?: number;
+  column?: number;
+  metadata: {
+    frictionType: string;
+    confidence: number;
+    estimatedTime: number;
+    dependencies?: string[];
+  };
+}
+
+class IntegratedFrictionProtocol {
+  async runIntegratedDetection(context: any) {
+    return { actionableItems: [] as ActionableItem[], success: true };
+  }
+  async executeAction(actionId: string) {
+    return { success: true, message: 'Action executed', error: undefined };
+  }
+  getUIStats() {
+    return {
+      overall: { totalDetected: 0, totalEliminated: 0, eliminationRate: 0, averageExecutionTime: 0 },
+      dependencies: { packageManager: 'npm' }
+    };
+  }
+}
 
 export class SherlockOmegaActionPlanProvider implements vscode.TreeDataProvider<ActionPlanItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<ActionPlanItem | undefined | null | void> = new vscode.EventEmitter<ActionPlanItem | undefined | null | void>();
@@ -105,11 +138,12 @@ export class SherlockOmegaActionPlanProvider implements vscode.TreeDataProvider<
         );
 
         return categoryActions.map(action => {
+            const contextValue = action.autoExecutable ? 'executable-action' : 'manual-action';
             const item = new ActionPlanItem(
                 action.title,
                 action.description,
                 vscode.TreeItemCollapsibleState.None,
-                'action'
+                contextValue
             );
 
             // Set icon based on action type and severity
@@ -126,9 +160,6 @@ export class SherlockOmegaActionPlanProvider implements vscode.TreeDataProvider<
                     arguments: [action.id]
                 };
             }
-
-            // Set context value for menu contributions
-            item.contextValue = action.autoExecutable ? 'executable-action' : 'manual-action';
 
             return item;
         });

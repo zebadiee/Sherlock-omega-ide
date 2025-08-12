@@ -29,7 +29,31 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = exports.SherlockOmegaExtension = void 0;
 const vscode = __importStar(require("vscode"));
-const sherlock_omega_ide_1 = require("sherlock-omega-ide");
+// Mock protocol for now
+class IntegratedFrictionProtocol {
+    async runIntegratedDetection(context) {
+        return {
+            actionableItems: [],
+            success: true
+        };
+    }
+    async executeAction(actionId) {
+        return { success: true, message: 'Action executed', error: undefined };
+    }
+    getUIStats() {
+        return {
+            overall: {
+                totalDetected: 0,
+                totalEliminated: 0,
+                eliminationRate: 0,
+                averageExecutionTime: 0
+            },
+            dependencies: {
+                packageManager: 'npm'
+            }
+        };
+    }
+}
 const actionPlanProvider_1 = require("./actionPlanProvider");
 const languageClient_1 = require("./languageClient");
 const statusBar_1 = require("./statusBar");
@@ -38,7 +62,7 @@ class SherlockOmegaExtension {
     constructor(context) {
         this.context = context;
         this.isActive = false;
-        this.protocol = new sherlock_omega_ide_1.IntegratedFrictionProtocol();
+        this.protocol = new IntegratedFrictionProtocol();
         this.actionPlanProvider = new actionPlanProvider_1.SherlockOmegaActionPlanProvider(this.protocol);
         this.languageClient = new languageClient_1.SherlockOmegaLanguageClient();
         this.statusBar = new statusBar_1.SherlockOmegaStatusBar();

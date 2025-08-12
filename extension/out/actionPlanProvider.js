@@ -29,6 +29,20 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ActionPlanItem = exports.SherlockOmegaActionPlanProvider = void 0;
 const vscode = __importStar(require("vscode"));
+class IntegratedFrictionProtocol {
+    async runIntegratedDetection(context) {
+        return { actionableItems: [], success: true };
+    }
+    async executeAction(actionId) {
+        return { success: true, message: 'Action executed', error: undefined };
+    }
+    getUIStats() {
+        return {
+            overall: { totalDetected: 0, totalEliminated: 0, eliminationRate: 0, averageExecutionTime: 0 },
+            dependencies: { packageManager: 'npm' }
+        };
+    }
+}
 class SherlockOmegaActionPlanProvider {
     constructor(protocol) {
         this.protocol = protocol;
@@ -101,7 +115,8 @@ class SherlockOmegaActionPlanProvider {
         const category = categoryName.split(' ')[1]; // Remove icon
         const categoryActions = this.actions.filter(action => this.getActionCategory(action) === category);
         return categoryActions.map(action => {
-            const item = new ActionPlanItem(action.title, action.description, vscode.TreeItemCollapsibleState.None, 'action');
+            const contextValue = action.autoExecutable ? 'executable-action' : 'manual-action';
+            const item = new ActionPlanItem(action.title, action.description, vscode.TreeItemCollapsibleState.None, contextValue);
             // Set icon based on action type and severity
             item.iconPath = new vscode.ThemeIcon(this.getActionIcon(action));
             // Set tooltip with detailed information
@@ -114,8 +129,6 @@ class SherlockOmegaActionPlanProvider {
                     arguments: [action.id]
                 };
             }
-            // Set context value for menu contributions
-            item.contextValue = action.autoExecutable ? 'executable-action' : 'manual-action';
             return item;
         });
     }
