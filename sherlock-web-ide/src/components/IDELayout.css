@@ -1,0 +1,402 @@
+/* IDE Layout Styles */
+.ide-layout {
+  display: flex;
+  height: 100vh;
+  background: #1E1E1E;
+  color: #CCCCCC;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+/* Activity Bar */
+.activity-bar {
+  width: 48px;
+  background: #333333;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid #3E3E42;
+  z-index: 100;
+}
+
+.activity-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-bottom {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.activity-item {
+  width: 48px;
+  height: 48px;
+  background: transparent;
+  border: none;
+  color: #CCCCCC;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.activity-item:hover {
+  background: #2A2A2A;
+}
+
+.activity-item.active {
+  background: #094771;
+  color: #FFFFFF;
+}
+
+.activity-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #007ACC;
+}
+
+.activity-item.sherlock-brain {
+  background: linear-gradient(45deg, #88C0D0, #A3BE8C);
+  border-radius: 50%;
+  margin: 4px;
+  width: 40px;
+  height: 40px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Sidebar */
+.sidebar {
+  background: #252526;
+  border-right: 1px solid #3E3E42;
+  min-width: 200px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Resize Handles */
+.resize-handle {
+  background: transparent;
+  cursor: col-resize;
+  user-select: none;
+}
+
+.resize-handle.vertical {
+  width: 4px;
+  cursor: col-resize;
+}
+
+.resize-handle.horizontal {
+  height: 4px;
+  cursor: row-resize;
+}
+
+.resize-handle:hover {
+  background: #007ACC;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Editor Area */
+.editor-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Tab Bar */
+.tab-bar {
+  display: flex;
+  background: #2D2D30;
+  border-bottom: 1px solid #3E3E42;
+  overflow-x: auto;
+  min-height: 35px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #2D2D30;
+  border-right: 1px solid #3E3E42;
+  cursor: pointer;
+  font-size: 13px;
+  min-width: 120px;
+  max-width: 200px;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.tab:hover {
+  background: #1E1E1E;
+}
+
+.tab.active {
+  background: #1E1E1E;
+  color: #FFFFFF;
+}
+
+.tab-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.tab-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dirty-indicator {
+  color: #FFFFFF;
+  margin-left: 4px;
+}
+
+.tab-close {
+  background: transparent;
+  border: none;
+  color: #CCCCCC;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 16px;
+  line-height: 1;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.tab-close:hover {
+  background: #3E3E42;
+  color: #FFFFFF;
+}
+
+/* Editor Container */
+.editor-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Welcome Screen */
+.welcome-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: #CCCCCC;
+  background: #1E1E1E;
+}
+
+.welcome-screen h2 {
+  color: #88C0D0;
+  margin-bottom: 16px;
+  font-size: 24px;
+}
+
+.welcome-screen p {
+  margin: 8px 0;
+  color: #A0A0A0;
+}
+
+/* Bottom Panel */
+.bottom-panel {
+  background: #1E1E1E;
+  border-top: 1px solid #3E3E42;
+  display: flex;
+  flex-direction: column;
+  min-height: 100px;
+  max-height: 400px;
+}
+
+.panel-tabs {
+  display: flex;
+  background: #2D2D30;
+  border-bottom: 1px solid #3E3E42;
+  min-height: 35px;
+  align-items: center;
+}
+
+.panel-tab {
+  background: transparent;
+  border: none;
+  color: #CCCCCC;
+  cursor: pointer;
+  padding: 8px 16px;
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.panel-tab:hover {
+  background: #3E3E42;
+}
+
+.panel-tab.active {
+  color: #FFFFFF;
+  border-bottom-color: #007ACC;
+}
+
+.panel-close {
+  background: transparent;
+  border: none;
+  color: #CCCCCC;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 16px;
+  margin-left: auto;
+  transition: background-color 0.2s ease;
+}
+
+.panel-close:hover {
+  background: #3E3E42;
+  color: #FFFFFF;
+}
+
+.panel-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.panel-placeholder {
+  padding: 20px;
+  text-align: center;
+  color: #A0A0A0;
+}
+
+.panel-placeholder h3 {
+  color: #CCCCCC;
+  margin-bottom: 12px;
+}
+
+/* Status Bar */
+.status-bar {
+  height: 22px;
+  background: #007ACC;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 12px;
+  z-index: 100;
+}
+
+.status-left,
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-item {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.status-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Scrollbar Styling */
+.tab-bar::-webkit-scrollbar {
+  height: 3px;
+}
+
+.tab-bar::-webkit-scrollbar-track {
+  background: #2D2D30;
+}
+
+.tab-bar::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 2px;
+}
+
+.tab-bar::-webkit-scrollbar-thumb:hover {
+  background: #4F4F4F;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .activity-bar {
+    width: 40px;
+  }
+  
+  .activity-item {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .sidebar {
+    min-width: 180px;
+  }
+  
+  .tab {
+    min-width: 100px;
+    padding: 6px 8px;
+  }
+  
+  .status-bar {
+    font-size: 11px;
+  }
+  
+  .status-left,
+  .status-right {
+    gap: 8px;
+  }
+}
+
+/* Dark theme enhancements */
+.ide-layout * {
+  scrollbar-width: thin;
+  scrollbar-color: #424242 #1E1E1E;
+}
+
+/* Focus states */
+.activity-item:focus,
+.tab:focus,
+.panel-tab:focus {
+  outline: 1px solid #007ACC;
+  outline-offset: -1px;
+}
+
+/* Animation for panel transitions */
+.bottom-panel {
+  transition: height 0.2s ease;
+}
+
+.panel-content {
+  transition: opacity 0.2s ease;
+}
+
+/* Whispering HUD positioning adjustment */
+.ide-layout .whispering-hud {
+  bottom: 22px; /* Account for status bar */
+}

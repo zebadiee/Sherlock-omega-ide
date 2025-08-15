@@ -1,0 +1,237 @@
+/* Whispering HUD Styles */
+.whispering-hud {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(46, 52, 64, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #4C566A;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.whispering-hud.expanded {
+  max-height: 400px;
+}
+
+/* Suggestions Area */
+.suggestions-area {
+  padding: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestion-card {
+  background: rgba(59, 66, 82, 0.8);
+  border-radius: 8px;
+  padding: 12px;
+  border-left: 3px solid #88C0D0;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.suggestion-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.observer-icon {
+  font-size: 16px;
+}
+
+.observer-name {
+  color: #D8DEE9;
+  font-weight: 500;
+  text-transform: capitalize;
+  flex: 1;
+}
+
+.confidence {
+  color: #EBCB8B;
+  font-weight: bold;
+  background: rgba(235, 203, 139, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.suggestion-message {
+  color: #D8DEE9;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.suggestion-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.accept-btn, .dismiss-btn {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.accept-btn {
+  background: #A3BE8C;
+  color: #2E3440;
+}
+
+.accept-btn:hover {
+  background: #8FBCBB;
+  transform: translateY(-1px);
+}
+
+.dismiss-btn {
+  background: rgba(76, 86, 106, 0.5);
+  color: #D8DEE9;
+  border: 1px solid #4C566A;
+}
+
+.dismiss-btn:hover {
+  background: rgba(76, 86, 106, 0.8);
+  transform: translateY(-1px);
+}
+
+/* Input Area */
+.input-area {
+  padding: 12px;
+  border-top: 1px solid rgba(76, 86, 106, 0.3);
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59, 66, 82, 0.6);
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(76, 86, 106, 0.5);
+  transition: all 0.3s ease;
+}
+
+.input-container:focus-within {
+  border-color: #88C0D0;
+  box-shadow: 0 0 0 2px rgba(136, 192, 208, 0.2);
+}
+
+.sherlock-icon {
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.whisper-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #D8DEE9;
+  font-size: 14px;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  outline: none;
+  padding: 4px 0;
+}
+
+.whisper-input::placeholder {
+  color: #81A1C1;
+  font-style: italic;
+}
+
+.expand-btn {
+  background: transparent;
+  border: none;
+  color: #81A1C1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.expand-btn:hover {
+  background: rgba(129, 161, 193, 0.1);
+  color: #88C0D0;
+}
+
+/* Quick Commands */
+.quick-commands {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.quick-commands button {
+  background: rgba(136, 192, 208, 0.1);
+  border: 1px solid rgba(136, 192, 208, 0.3);
+  color: #88C0D0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.quick-commands button:hover {
+  background: rgba(136, 192, 208, 0.2);
+  border-color: #88C0D0;
+  transform: translateY(-1px);
+}
+
+/* Scrollbar Styling */
+.suggestions-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.suggestions-area::-webkit-scrollbar-track {
+  background: rgba(76, 86, 106, 0.2);
+  border-radius: 3px;
+}
+
+.suggestions-area::-webkit-scrollbar-thumb {
+  background: rgba(136, 192, 208, 0.4);
+  border-radius: 3px;
+}
+
+.suggestions-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(136, 192, 208, 0.6);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .suggestion-actions {
+    flex-direction: column;
+  }
+  
+  .quick-commands {
+    justify-content: center;
+  }
+  
+  .quick-commands button {
+    flex: 1;
+    min-width: 0;
+  }
+}

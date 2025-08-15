@@ -1,6 +1,6 @@
 # Web-Based Sherlock IDE Implementation Plan
 
-- [ ] 1. Create React + TypeScript foundation with Monaco Editor
+- [x] 1. Create React + TypeScript foundation with Monaco Editor
   - Initialize Create React App with TypeScript template
   - Install Monaco Editor: `npm install @monaco-editor/react monaco-editor`
   - Set up basic project structure with components, services, and workers directories
@@ -9,7 +9,7 @@
   - _Requirements: 1.1, 1.3_
 
 - [ ] 2. Implement basic Monaco Editor integration
-  - [ ] 2.1 Create MonacoEditor component with TypeScript support
+  - [x] 2.1 Create MonacoEditor component with TypeScript support
     - Code MonacoEditor.tsx with proper TypeScript integration and syntax highlighting
     - Implement editor mounting, configuration, and basic event handling
     - Create custom "whispering" theme with gentle colors and styling
@@ -24,7 +24,7 @@
     - _Requirements: 1.4, 4.1, 4.2_
 
 - [ ] 3. Create file explorer and project management
-  - [ ] 3.1 Implement FileExplorer component with tree structure
+  - [x] 3.1 Implement FileExplorer component with tree structure
     - Code hierarchical file tree display with expand/collapse functionality
     - Implement create, delete, rename file operations
     - Add drag-and-drop support for file organization
@@ -84,7 +84,7 @@
     - _Requirements: 1.3, 3.4, 7.2_
 
 - [ ] 7. Create WhisperingHUD for gentle notifications
-  - [ ] 7.1 Implement WhisperingHUD component with animations
+  - [x] 7.1 Implement WhisperingHUD component with animations
     - Code gentle notification overlay with smooth animations using Framer Motion
     - Implement insight queuing and timing based on developer flow state
     - Create dismissible notification cards with accept/reject actions
@@ -99,7 +99,7 @@
     - _Requirements: 7.3, 7.5_
 
 - [ ] 8. Implement integrated terminal with xterm.js
-  - [ ] 8.1 Create TerminalPanel component
+  - [x] 8.1 Create TerminalPanel component
     - Code xterm.js integration with proper styling and configuration
     - Implement basic shell command execution in browser environment
     - Create terminal session management and history

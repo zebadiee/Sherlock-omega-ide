@@ -1,0 +1,168 @@
+/* File Explorer Styles */
+.file-explorer {
+  height: 100%;
+  background: #252526;
+  color: #CCCCCC;
+  font-size: 13px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #2D2D30;
+  border-bottom: 1px solid #3E3E42;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.explorer-title {
+  color: #CCCCCC;
+}
+
+.explorer-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  color: #CCCCCC;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  font-size: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #3E3E42;
+}
+
+.file-tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.file-node {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  white-space: nowrap;
+  min-height: 22px;
+}
+
+.file-node:hover {
+  background: #2A2D2E;
+}
+
+.file-node.selected {
+  background: #094771;
+  color: #FFFFFF;
+}
+
+.file-icon {
+  margin-right: 6px;
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-children {
+  /* Nested folder styling handled by padding-left in renderFileNode */
+}
+
+/* Context Menu */
+.context-menu {
+  background: #383838;
+  border: 1px solid #5A5A5A;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  min-width: 160px;
+  z-index: 1000;
+}
+
+.context-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.1s ease;
+}
+
+.context-item:hover {
+  background: #094771;
+}
+
+.context-item.danger:hover {
+  background: #C5282F;
+}
+
+.context-divider {
+  height: 1px;
+  background: #5A5A5A;
+  margin: 4px 0;
+}
+
+/* Scrollbar Styling */
+.file-tree::-webkit-scrollbar {
+  width: 8px;
+}
+
+.file-tree::-webkit-scrollbar-track {
+  background: #252526;
+}
+
+.file-tree::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 4px;
+}
+
+.file-tree::-webkit-scrollbar-thumb:hover {
+  background: #4F4F4F;
+}
+
+/* File type specific styling */
+.file-node[data-type="folder"] .file-name {
+  font-weight: 500;
+}
+
+.file-node[data-type="file"] .file-name {
+  font-weight: 400;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .file-explorer {
+    font-size: 12px;
+  }
+  
+  .file-node {
+    padding: 6px 8px;
+    min-height: 28px;
+  }
+  
+  .explorer-header {
+    padding: 10px 12px;
+  }
+}

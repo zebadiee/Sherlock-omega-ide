@@ -1,6 +1,7 @@
 /**
  * Core interfaces for Sherlock Ω system components
  * Defines the contracts for all major system components
+ * Enhanced with platform abstraction and whispering architecture
  */
 
 import {

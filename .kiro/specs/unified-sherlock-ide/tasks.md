@@ -1,7 +1,7 @@
 # Unified Sherlock Ω IDE Implementation Plan
 
 - [ ] 1. Enhance existing foundation with unified architecture
-  - [ ] 1.1 Extend core interfaces for platform abstraction
+  - [x] 1.1 Extend core interfaces for platform abstraction
     - Enhance existing `src/core/interfaces.ts` with platform-agnostic patterns
     - Create `src/core/whispering-interfaces.ts` with unified observer contracts
     - Add `src/core/platform-interfaces.ts` for platform abstraction layer
