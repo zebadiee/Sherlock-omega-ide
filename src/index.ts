@@ -85,15 +85,23 @@ function calculateTotal(items) {
 
 async function startWebServer(orchestrator: any): Promise<void> {
   const { EnhancedIDEInterface } = await import('./web/enhanced-ide-interface');
+  const { FullSherlockIDE } = await import('./web/full-ide');
   
+  // Start Enhanced IDE on port 3005
   const enhancedIDE = new EnhancedIDEInterface(3005);
-  
   await enhancedIDE.start();
   
-  // Store server reference for cleanup
-  (global as any).sherlockWebServer = enhancedIDE;
+  // Start Beast Mode IDE on port 3003
+  const beastIDE = new FullSherlockIDE(3003);
+  beastIDE.setOrchestrator(orchestrator);
+  await beastIDE.start();
   
-  console.log('[Bootstrap] 🌟 ENHANCED SHERLOCK Ω IDE ACTIVATED!');
+  // Store server references for cleanup
+  (global as any).sherlockWebServer = enhancedIDE;
+  (global as any).sherlockBeastServer = beastIDE;
+  
+  console.log('[Bootstrap] 🌟 ENHANCED SHERLOCK Ω IDE: http://localhost:3005');
+  console.log('[Bootstrap] 🔥 BEAST MODE IDE: http://localhost:3003');
 }
 
 // Start the bootstrap process
