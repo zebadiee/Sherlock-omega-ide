@@ -3,7 +3,8 @@
  * Defines contracts for the three observers and gentle suggestion system
  */
 
-import { SensorInterface, SensorResult } from './interfaces';
+import { SensorInterface } from './interfaces';
+import { SensorResult } from '../types/core';
 
 // Platform Types
 export enum PlatformType {

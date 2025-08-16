@@ -3,7 +3,7 @@
  * Defines contracts for cross-platform functionality
  */
 
-import { PlatformType, WhisperingObserver, ObservationContext } from './whispering-interfaces';
+import { PlatformType, WhisperingObserver, ObservationContext, WhisperSuggestion, DeveloperState } from './whispering-interfaces';
 
 // Platform Adapter Interface
 export interface PlatformAdapter {
