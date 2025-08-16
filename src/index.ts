@@ -12,9 +12,9 @@ async function bootstrap() {
   try {
     log('🚀 Sherlock Ω IDE starting...');
     
-    // Set demo mode to disable evolution
-    process.env.EVOLUTION_MODE = 'manual';
-    log('🔒 Evolution mode set to MANUAL - autonomous evolution disabled');
+    // Enable autonomous evolution for Cycle 5
+    process.env.EVOLUTION_MODE = 'auto';
+    log('🔥 Evolution mode set to AUTO - autonomous evolution ENABLED');
     
     // Initialize core systems in order
     await initializeLogging();
@@ -22,7 +22,7 @@ async function bootstrap() {
     await startWebServer(orchestrator);
     
     log('✨ Sherlock Ω IDE ready for development');
-    log('🔥 DEMO MODE IDE: http://localhost:3005');
+    log('🔥 CYCLE 5 EVOLUTION IDE: http://localhost:3005');
     
     // Keep the process alive
     process.on('SIGINT', () => {

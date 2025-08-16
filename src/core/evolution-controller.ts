@@ -29,6 +29,8 @@ export class EvolutionController {
       throw new Error('Evolution disabled in demo mode');
     }
 
+    this.logger.info('🔥 CYCLE 5 EVOLUTION INITIATED - Full autonomy restored');
+
     if (this.isEvolving) {
       throw new Error('Evolution cycle already in progress');
     }
