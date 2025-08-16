@@ -3,9 +3,22 @@ import { PlatformType } from '../../core/whispering-interfaces';
 
 describe('PerformanceMonitor', () => {
   let monitor: PerformanceMonitor;
+  const monitors: PerformanceMonitor[] = [];
 
   beforeEach(() => {
     monitor = new PerformanceMonitor(PlatformType.WEB);
+    monitors.push(monitor);
+  });
+
+  afterEach(() => {
+    // Clean up all monitor intervals to prevent Jest from hanging
+    monitors.forEach(m => m.stopCleanupInterval());
+    monitors.length = 0; // Clear the array
+  });
+
+  afterAll(() => {
+    // Final safety net to clear any remaining timers
+    jest.clearAllTimers();
   });
 
   describe('constructor', () => {
@@ -20,6 +33,7 @@ describe('PerformanceMonitor', () => {
         enabled: false,
         sampleRate: 0.5
       });
+      monitors.push(customMonitor); // Track for cleanup
       
       expect(customMonitor.getConfig().enabled).toBe(false);
       expect(customMonitor.getConfig().sampleRate).toBe(0.5);
@@ -203,19 +217,22 @@ describe('PerformanceMonitor', () => {
   });
 
   describe('cleanup', () => {
-    it('should cleanup old metrics based on retention period', () => {
+    it('should cleanup old metrics based on retention period', async () => {
       monitor.updateConfig({ retentionPeriod: 100 }); // 100ms retention
       
       monitor.recordMetric('cleanup_test', 100, MetricType.RESPONSE_TIME);
       
-      // Wait for cleanup
-      return new Promise(resolve => {
-        setTimeout(() => {
-          const metrics = monitor.getMetrics('cleanup_test');
-          expect(metrics.length).toBe(0);
-          resolve(undefined);
-        }, 200);
-      });
+      // Verify metric was recorded
+      expect(monitor.getMetrics('cleanup_test').length).toBe(1);
+      
+      // Wait for retention period to pass
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // Force cleanup to run
+      monitor.forceCleanup();
+      
+      const metrics = monitor.getMetrics('cleanup_test');
+      expect(metrics.length).toBe(0);
     });
   });
 

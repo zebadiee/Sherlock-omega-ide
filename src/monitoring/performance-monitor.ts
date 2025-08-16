@@ -112,6 +112,7 @@ export class PerformanceMonitor {
   private platform: PlatformType;
   private alerts: PerformanceAlert[] = [];
   private startTime: Date;
+  private cleanupInterval?: NodeJS.Timeout;
 
   constructor(platform: PlatformType, config?: Partial<PerformanceConfig>) {
     this.platform = platform;
@@ -383,6 +384,25 @@ export class PerformanceMonitor {
     return { ...this.config };
   }
 
+  /**
+   * Forces cleanup of old metrics (primarily for testing)
+   */
+  forceCleanup(): void {
+    for (const [name] of this.metrics) {
+      this.cleanupOldMetrics(name);
+    }
+  }
+
+  /**
+   * Stops the cleanup interval (for testing cleanup)
+   */
+  stopCleanupInterval(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+  }
+
   private getDefaultThresholds(): PerformanceThreshold[] {
     return [
       {
@@ -449,7 +469,7 @@ export class PerformanceMonitor {
   }
 
   private startCleanupInterval(): void {
-    setInterval(() => {
+    this.cleanupInterval = setInterval(() => {
       for (const [name] of this.metrics) {
         this.cleanupOldMetrics(name);
       }
