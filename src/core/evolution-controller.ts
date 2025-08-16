@@ -24,6 +24,11 @@ export class EvolutionController {
   }
 
   async initiateEvolutionCycle(): Promise<EvolutionResult> {
+    if (process.env.EVOLUTION_MODE === 'manual') {
+      this.logger.info('🔒 Evolution cycle blocked - running in demo mode');
+      throw new Error('Evolution disabled in demo mode');
+    }
+
     if (this.isEvolving) {
       throw new Error('Evolution cycle already in progress');
     }

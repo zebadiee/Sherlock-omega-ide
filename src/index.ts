@@ -12,13 +12,17 @@ async function bootstrap() {
   try {
     log('🚀 Sherlock Ω IDE starting...');
     
+    // Set demo mode to disable evolution
+    process.env.EVOLUTION_MODE = 'manual';
+    log('🔒 Evolution mode set to MANUAL - autonomous evolution disabled');
+    
     // Initialize core systems in order
     await initializeLogging();
     const orchestrator = await initializeBasicOrchestrator();
     await startWebServer(orchestrator);
     
     log('✨ Sherlock Ω IDE ready for development');
-    log('🔥 BEAST MODE IDE: http://localhost:3003');
+    log('🔥 DEMO MODE IDE: http://localhost:3005');
     
     // Keep the process alive
     process.on('SIGINT', () => {
@@ -80,17 +84,16 @@ function calculateTotal(items) {
 }
 
 async function startWebServer(orchestrator: any): Promise<void> {
-  const { BeastModeSherlockIDE } = await import('./web/beast-mode-ide');
+  const { EnhancedIDEInterface } = await import('./web/enhanced-ide-interface');
   
-  const beastIDE = new BeastModeSherlockIDE(3003);
-  beastIDE.setOrchestrator(orchestrator);
+  const enhancedIDE = new EnhancedIDEInterface(3005);
   
-  await beastIDE.start();
+  await enhancedIDE.start();
   
   // Store server reference for cleanup
-  (global as any).sherlockWebServer = beastIDE;
+  (global as any).sherlockWebServer = enhancedIDE;
   
-  console.log('[Bootstrap] 🔥 BEAST MODE IDE ACTIVATED!');
+  console.log('[Bootstrap] 🌟 ENHANCED SHERLOCK Ω IDE ACTIVATED!');
 }
 
 // Start the bootstrap process

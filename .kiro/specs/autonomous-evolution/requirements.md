@@ -114,7 +114,34 @@ The Sherlock Ω IDE Autonomous Evolution System is a self-building, self-deployi
 4. WHEN security threats are detected THEN the system SHALL implement countermeasures automatically
 5. IF ethical violations are detected THEN the system SHALL halt evolution and alert administrators
 
-### Requirement 10: Global Knowledge Base
+### Requirement 10: Evolution Safety Validation
+
+**User Story:** As a self-healing system, I want comprehensive test coverage and rollback mechanisms for all evolution deployments, so that I can safely evolve without risking system stability or data integrity.
+
+#### Acceptance Criteria
+
+1. WHEN evolution deployments are initiated THEN the system SHALL require ≥95% test coverage for all affected modules
+2. WHEN test coverage is insufficient THEN the system SHALL automatically generate missing unit and integration tests
+3. WHEN evolution deployments begin THEN the system SHALL create a complete state snapshot for rollback
+4. WHEN evolution deployment fails THEN the system SHALL automatically execute rollback within 30 seconds
+5. WHEN rollback is triggered THEN the system SHALL restore previous state and log all rollback actions
+6. WHEN evolution safety validation fails THEN the system SHALL block deployment until safety requirements are met
+7. IF rollback mechanisms fail THEN the system SHALL alert administrators and enter safe mode
+
+### Requirement 11: Automated Test Generation
+
+**User Story:** As an autonomous evolution system, I want to automatically generate comprehensive test suites for all code changes, so that I can ensure reliability and safety without manual test writing.
+
+#### Acceptance Criteria
+
+1. WHEN new code is generated THEN the system SHALL automatically create corresponding unit tests
+2. WHEN integration points are modified THEN the system SHALL generate integration tests for all affected interfaces
+3. WHEN evolution deployments are planned THEN the system SHALL generate safety tests for rollback scenarios
+4. WHEN test generation completes THEN all tests SHALL achieve ≥95% code coverage
+5. WHEN generated tests fail THEN the system SHALL refine test cases until they pass consistently
+6. IF test generation cannot achieve coverage targets THEN the system SHALL block evolution deployment
+
+### Requirement 12: Global Knowledge Base
 
 **User Story:** As a distributed learning system, I want to maintain a global knowledge base that captures all learning and evolution across the network, so that improvements benefit all instances.
 

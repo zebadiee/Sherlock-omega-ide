@@ -18,7 +18,7 @@ export class BeastModeSherlockIDE {
   private terminals: Map<string, ChildProcess> = new Map();
   private workspaceRoot: string;
 
-  constructor(port: number = 3003) {
+  constructor(port: number = 3004) {
     this.port = port;
     this.logger = new Logger(PlatformType.WEB);
     this.workspaceRoot = process.cwd();

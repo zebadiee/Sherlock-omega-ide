@@ -13,7 +13,7 @@ import { ProjectAnalyzer } from '../project-analyzer';
 import { AIOrchestrator } from '../../orchestrator';
 import { Logger } from '../../../logging/logger';
 import { PerformanceMonitor } from '../../../monitoring/performance-monitor';
-import { PlatformType } from '../../../types/core';
+import { PlatformType } from '../../../core/whispering-interfaces';
 import {
   AIResponse,
   ProjectContext,

@@ -6,6 +6,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
+    "demo": "EVOLUTION_MODE=manual ts-node src/web/demo-server.ts",
+    "demo:build": "npm run build && EVOLUTION_MODE=manual node dist/web/demo-server.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -25,6 +27,8 @@
   "author": "Sherlock Ω Contributors",
   "license": "MIT",
   "dependencies": {
+    "@types/express": "^5.0.3",
+    "express": "^5.1.0",
     "monaco-editor": "^0.52.2",
     "rxjs": "^7.8.1"
   },

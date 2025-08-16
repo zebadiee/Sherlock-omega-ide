@@ -15,7 +15,7 @@ import {
 } from '../../interfaces';
 import { Logger } from '../../../logging/logger';
 import { PerformanceMonitor } from '../../../monitoring/performance-monitor';
-import { PlatformType } from '../../../types/core';
+import { PlatformType } from '../../../core/whispering-interfaces';
 
 // Mock dependencies
 jest.mock('../../../logging/logger');

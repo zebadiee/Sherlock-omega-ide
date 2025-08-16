@@ -234,6 +234,10 @@ export class ConsciousnessAlgorithm {
 
   // Public API
   startEvolutionLoop(): void {
+    if (process.env.EVOLUTION_MODE === 'manual') {
+      console.log('🔒 EVOLUTION LOOP DISABLED - Running in demo mode');
+      return;
+    }
     console.log('🔄 CONSCIOUSNESS EVOLUTION LOOP STARTED');
     setInterval(() => this.runEvolutionCycle(), this.evolutionInterval);
   }

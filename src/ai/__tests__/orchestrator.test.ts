@@ -24,7 +24,7 @@ import {
   AIError,
   AIErrorCode
 } from '../interfaces';
-import { PlatformType } from '../../types/core';
+import { PlatformType } from '../../core/whispering-interfaces';
 
 // Mock dependencies
 jest.mock('../model-router');

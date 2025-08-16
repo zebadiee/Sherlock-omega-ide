@@ -13,7 +13,10 @@ src/
 ├── github/         # Secure GitHub integration
 ├── ui/            # User interface components
 ├── types/         # Shared type definitions
-└── utils/         # Utility functions and helpers
+├── utils/         # Utility functions and helpers
+├── safety/         # Safety validation and rollback systems
+├── testing/        # Automated test generation and coverage
+└── evolution/      # Autonomous evolution and deployment
 ```
 
 ## Architectural Patterns
@@ -24,6 +27,13 @@ src/
 - **IDeveloperMindInterface**: Multi-modal developer intent analysis
 - **IZeroFrictionProtocol**: Proactive friction elimination
 - **IUniversalResolutionEngine**: Guaranteed problem resolution
+
+### Self-Healing Evolution Components
+- **SafetyValidationSystem**: Enforces ≥95% test coverage and validates evolution safety
+- **TestCoverageEnforcer**: Automatically generates missing tests and blocks unsafe deployments
+- **RollbackManager**: Manages state snapshots and 30-second automatic rollback
+- **EvolutionSafetyFramework**: Coordinates deployment transactions with rollback capability
+- **ContinuousValidator**: Real-time validation of evolution safety and system health
 
 ### Type System Architecture
 - **ComputationalIssue**: Structured problem representation with formal logic

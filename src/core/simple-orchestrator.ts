@@ -25,8 +25,8 @@ export class SimpleOrchestrator {
     // Basic initialization without complex dependencies
     await this.initializeBasicSystems();
     
-    // Initialize evolution engine
-    await this.initializeEvolution();
+    // Initialize evolution engine (skip for demo mode)
+    this.logger.info('🧬 Evolution system ready (demo mode - manual trigger only)');
     
     this.isInitialized = true;
     this.logger.info('✨ SHERLOCK Ω CONSCIOUSNESS ACTIVATED');
