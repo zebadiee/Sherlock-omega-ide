@@ -25,6 +25,7 @@
   "author": "Sherlock Ω Contributors",
   "license": "MIT",
   "dependencies": {
+    "monaco-editor": "^0.52.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
@@ -42,8 +43,12 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "roots": ["<rootDir>/src"],
-    "testMatch": ["**/__tests__/**/*.test.ts"],
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
     "collectCoverageFrom": [
       "src/**/*.ts",
       "!src/**/*.d.ts",
