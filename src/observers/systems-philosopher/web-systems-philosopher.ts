@@ -109,6 +109,13 @@ export class WebSystemsPhilosopher extends BaseWhisperingObserver<any> {
         used: 512 * 1024 * 1024,
         quota: 1024 * 1024 * 1024,
         type: 'localStorage'
+      },
+      performance: {
+        responseTime: 50,
+        memoryUsage: 0.4,
+        cpuUsage: 0.3,
+        activeAlerts: 0,
+        healthScore: 0.95
       }
     };
   }

@@ -201,6 +201,15 @@ export interface SystemState {
   permissions: SystemPermissions;
   network: NetworkStatus;
   storage: StorageStatus;
+  performance: PerformanceState;
+}
+
+export interface PerformanceState {
+  responseTime: number;
+  memoryUsage: number;
+  cpuUsage: number;
+  activeAlerts: number;
+  healthScore: number; // 0-1
 }
 
 export interface SystemResources {
