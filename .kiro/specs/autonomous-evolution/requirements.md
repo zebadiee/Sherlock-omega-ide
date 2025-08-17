@@ -121,7 +121,7 @@ The Sherlock Ω IDE Autonomous Evolution System is a self-building, self-deployi
 #### Acceptance Criteria
 
 1. WHEN evolution deployments are initiated THEN the system SHALL require ≥95% test coverage for all affected modules
-2. WHEN test coverage is insufficient THEN the system SHALL automatically generate missing unit and integration tests
+2. WHEN test coverage is insufficient THEN the system SHALL invoke the Automated Test Generation system (Req 11) to meet the coverage target
 3. WHEN evolution deployments begin THEN the system SHALL create a complete state snapshot for rollback
 4. WHEN evolution deployment fails THEN the system SHALL automatically execute rollback within 30 seconds
 5. WHEN rollback is triggered THEN the system SHALL restore previous state and log all rollback actions

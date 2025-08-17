@@ -53,10 +53,6 @@ If you have suggestions on a fix for the bug, describe it here.
 - [ ] **High** - Blocks core functionality
 - [ ] **Critical** - System crash or data loss
 
-## 🏷️ **Labels**
-
-Please add relevant labels to help categorize this issue.
-
 ---
 
 **Thank you for helping improve Sherlock Omega IDE! 🕵️**

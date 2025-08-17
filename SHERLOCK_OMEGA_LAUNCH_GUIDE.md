@@ -76,8 +76,10 @@ ollama pull qwen2.5-coder
 **llama.cpp**:
 ```bash
 git clone https://github.com/ggerganov/llama.cpp
-cd llama.cpp && make
-./server -m your-model.gguf
+cd llama.cpp
+make
+./server -m path/to/your-model.gguf
+# Download GGUF-format models from Hugging Face
 ```
 
 ### 3. **Browse Hugging Face Models**
@@ -88,12 +90,12 @@ cd llama.cpp && make
 
 ## 🎮 HOW TO USE
 
-### **Basic Workflow**
-1. **Open/Create Files**: Use the file explorer or Ctrl+N
-2. **Start Coding**: Monaco Editor with full IntelliSense
-3. **Get AI Help**: Type in the Whispering HUD at the bottom
-4. **Use Terminal**: Integrated terminal with Sherlock commands
-5. **Switch Models**: Change models on-the-fly for different tasks
+### **Interactive Workflow**
+1. **Open/Create Files**: Use the file explorer or Ctrl+N.
+2. **Start Coding**: The Monaco Editor provides full IntelliSense and syntax highlighting.
+3. **Select Your AI Partner**: Use the Model Selector in the status bar to choose the best LLM for your current task (e.g., Groq for speed, Claude 3 Opus for analysis).
+4. **Get AI Help**: Ask questions or give commands in the Whispering HUD (Ctrl+Shift+K).
+5. **Run Commands**: Use the Integrated Terminal (`Ctrl+``) to run build scripts, manage git, or install packages.
 
 ### **Keyboard Shortcuts**
 - `Ctrl+Shift+K` - Toggle Whispering HUD
@@ -114,12 +116,12 @@ Try these in the Whispering HUD:
 - "Refactor this to use modern patterns"
 - "What's the time complexity?"
 
-### **Terminal Commands**
-Special Sherlock commands:
-- `sherlock` - Activate all observers
-- `help` - Show available commands
-- `npm start` - Start development server
-- `git status` - Check repository status
+### **Integrated Terminal**
+The terminal is your command center, running a standard shell within your project's context. Use it for all your typical development tasks:
+- `npm install` - Install project dependencies
+- `npm run test` - Run your test suite
+- `git commit -m "feat: add new component"` - Commit your changes
+- `ls -la` - List files in the current directory
 
 ## 🌟 ADVANCED FEATURES
 

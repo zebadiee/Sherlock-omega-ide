@@ -304,6 +304,35 @@ interface Codebase {
   patterns: IdentifiedPattern[];
 }
 
+enum PrivacyLevel {
+  LOCAL_ONLY = 'local_only', // All processing happens on-device
+  ANONYMIZED_CLOUD = 'anonymized_cloud', // Code is anonymized before sending to cloud
+  FULL_CLOUD = 'full_cloud' // Full context sent to cloud providers
+}
+
+enum AITaskType {
+  CODE_GENERATION = 'code-generation',
+  CODE_COMPLETION = 'code-completion',
+  EXPLANATION = 'explanation',
+  DEBUGGING = 'debugging',
+  REFACTORING = 'refactoring',
+  CHAT = 'chat'
+}
+
+interface ModelPreferences {
+  defaultModel: string; // e.g., 'gpt-4-turbo'
+  taskSpecificModels: {
+    [task in AITaskType]?: string; // e.g., { 'code-generation': 'deepseek-coder' }
+  };
+}
+
+interface CompletionSettings {
+  autoImport: boolean;
+  showDocumentation: boolean;
+}
+
+// Learning and adaptation models
+
 // Learning and adaptation models
 interface UserPreferences {
   codingStyle: CodingStyle;
