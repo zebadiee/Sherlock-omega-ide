@@ -139,6 +139,12 @@ interface AIResponse {
   processingTime: number;
   tokens: TokenUsage;
 }
+
+interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
 ```
 
 ### Code Completion Engine
@@ -329,6 +335,27 @@ interface ModelPreferences {
 interface CompletionSettings {
   autoImport: boolean;
   showDocumentation: boolean;
+}
+
+interface PerformanceMetrics {
+  requestId: string;
+  modelUsed: string;
+  responseTimeMs: number;
+  tokensPerSecond: number;
+  timeToFirstTokenMs?: number;
+}
+
+interface UserFeedback {
+  interactionId: string;
+  rating: 'positive' | 'negative';
+  comment?: string;
+  correction?: string; // User-provided correction
+}
+
+interface CodingStyle {
+  indentation: 'tabs' | 'spaces';
+  indentSize: number;
+  namingConvention: 'camelCase' | 'snake_case' | 'PascalCase';
 }
 
 // Learning and adaptation models

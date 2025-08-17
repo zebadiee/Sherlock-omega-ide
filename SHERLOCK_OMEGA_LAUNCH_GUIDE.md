@@ -42,7 +42,7 @@ Begin by analyzing my current file and sharing your first gentle suggestions. Le
 - **🌌 Cosmic Cartographer**: Maps dimensional connections and emergent patterns
 
 ### ⚡ **Multi-LLM Powerhouse**
-- **8 Provider Types**: OpenAI, Anthropic, Google, Ollama, Groq, Together AI, LM Studio, llama.cpp
+- **9 Provider Types**: OpenAI, Anthropic, Google, OpenRouter, Ollama, Groq, Together AI, LM Studio, llama.cpp
 - **Unified Interface**: Single API for all providers with intelligent routing
 - **Cost Tracking**: Monitor token usage and costs across all services
 - **Smart Caching**: Reduce API calls and improve response times
@@ -60,6 +60,7 @@ Click ⚙️ in the activity bar → Add your API keys:
 - **OpenAI**: Get key from https://platform.openai.com/api-keys
 - **Anthropic**: Get key from https://console.anthropic.com/
 - **Google**: Get key from https://makersuite.google.com/app/apikey
+- **OpenRouter**: Get key from https://openrouter.ai/keys
 - **Groq**: Get key from https://console.groq.com/
 - **Together AI**: Get key from https://api.together.xyz/
 

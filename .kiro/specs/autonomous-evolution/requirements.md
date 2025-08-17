@@ -113,6 +113,7 @@ The Sherlock Ω IDE Autonomous Evolution System is a self-building, self-deployi
 3. WHEN evolving capabilities THEN changes SHALL not compromise system security
 4. WHEN security threats are detected THEN the system SHALL implement countermeasures automatically
 5. IF ethical violations are detected THEN the system SHALL halt evolution and alert administrators
+6. WHEN an autonomous evolution decision is made THEN the system SHALL create an immutable, auditable log entry detailing the rationale, data sources, and ethical guideline validations
 
 ### Requirement 10: Evolution Safety Validation
 
