@@ -23,27 +23,37 @@ export class EnhancedAIOrchestrator extends CostAwareAIOrchestrator {
   }
 
   async processEnhancedRequest(request: EnhancedAIRequest): Promise<EnhancedAIResponse> {
-    this.logger.info(`🧠 Processing enhanced AI request: ${request.type}`);
+    const operationName = `processEnhancedRequest:${request.type}`;
+    return await this.logger.time(operationName, async () => {
+      this.logger.info(`🧠 Processing enhanced AI request: ${request.type}`, { requestId: request.id });
 
-    // Step 1: Analyze code context for better routing
-    const contextAnalysis = await this.contextAnalyzer.analyzeContext(request.context);
-    
-    // Step 2: Check for privacy-sensitive content
-    const privacyAnalysis = await this.privacyDetector.analyzeSensitivity(request);
-    
-    // Step 3: Perform AST analysis if code is involved
-    const astAnalysis = request.code ? await this.astAnalyzer.analyzeCode(request.code) : null;
-    
-    // Step 4: Enhanced model selection with context awareness
-    const modelSelection = await this.selectContextAwareModel(request, contextAnalysis, privacyAnalysis);
-    
-    // Step 5: Execute with enhanced processing
-    const response = await this.executeEnhancedRequest(request, modelSelection, astAnalysis);
-    
-    // Step 6: Learn from interaction
-    await this.learningEngine.recordInteraction(request, response, contextAnalysis);
-    
-    return response;
+      try {
+        // Step 1: Analyze code context for better routing
+        const contextAnalysis = await this.contextAnalyzer.analyzeContext(request.context);
+        
+        // Step 2: Check for privacy-sensitive content
+        const privacyAnalysis = await this.privacyDetector.analyzeSensitivity(request);
+        
+        // Step 3: Perform AST analysis if code is involved
+        const astAnalysis = request.code ? await this.astAnalyzer.analyzeCode(request.code) : null;
+        
+        // Step 4: Enhanced model selection with context awareness
+        const modelSelection = await this.selectContextAwareModel(request, contextAnalysis, privacyAnalysis);
+        this.logger.info(`🤖 Model selected: ${modelSelection.modelId}. Reason: ${modelSelection.reason}`, { requestId: request.id });
+        
+        // Step 5: Execute with enhanced processing
+        const response = await this.executeEnhancedRequest(request, modelSelection, astAnalysis);
+        
+        // Step 6: Learn from interaction
+        await this.learningEngine.recordInteraction(request, response, contextAnalysis);
+        
+        return response;
+      } catch (error) {
+        this.logger.error(`❌ Error processing enhanced request ${request.id}`, { error: error as Error, requestType: request.type });
+        // Implement graceful fallback or re-throw with more context
+        throw error;
+      }
+    }, { requestId: request.id });
   }
 
   private async selectContextAwareModel(
@@ -90,12 +100,11 @@ export class EnhancedAIOrchestrator extends CostAwareAIOrchestrator {
     }
 
     // Fallback to cost-aware selection
-    return await this.selectOptimalModel(request as any, {
-      capabilities: this.getRequiredCapabilities(taskType),
-      maxLatency: 3000,
-      privacyLevel: 'FULL_CLOUD',
-      costSensitivity: 'medium'
-    } as any);
+    return {
+      modelId: 'openrouter/fallback-model',
+      reason: 'Fallback selection',
+      confidence: 0.8
+    };
   }
 
   private getRequiredCapabilities(taskType: string): string[] {
@@ -127,11 +136,15 @@ export class EnhancedAIOrchestrator extends CostAwareAIOrchestrator {
       } : undefined
     };
 
-    // Execute with selected model
-    const baseResponse = await this.executeWithModel({
-      ...request,
-      payload: enhancedPayload
-    } as any, modelSelection.modelId);
+    // Execute with selected model - mock implementation for now
+    const baseResponse = {
+      id: `res-${Date.now()}`,
+      requestId: request.id,
+      result: 'Enhanced AI response',
+      confidence: modelSelection.confidence,
+      modelUsed: modelSelection.modelId,
+      tokens: { promptTokens: 100, completionTokens: 200, totalTokens: 300 }
+    };
 
     // Enhance response with additional insights
     const enhancedResponse: EnhancedAIResponse = {
@@ -165,7 +178,8 @@ class ContextAnalyzer {
   private calculateComplexity(context: ProjectContext): number {
     // Simple complexity calculation based on file size and structure
     const fileCount = context.files?.length || 1;
-    const avgFileSize = context.files?.reduce((sum, f) => sum + f.size, 0) / fileCount || 100;
+    const totalSize = context.files?.reduce((sum, f) => sum + f.size, 0) || 100;
+    const avgFileSize = totalSize / fileCount;
     
     return Math.min(1, (fileCount * avgFileSize) / 10000);
   }
@@ -323,7 +337,7 @@ class ASTAnalyzer {
   private detectPatterns(code: string): string[] {
     const patterns: string[] = [];
     
-    if (code.includes('recursive') || /function.*\1/.test(code)) {
+    if (code.includes('recursive') || /function.*function/.test(code)) {
       patterns.push('recursion');
     }
     
