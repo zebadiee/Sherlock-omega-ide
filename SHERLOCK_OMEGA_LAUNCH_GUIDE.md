@@ -43,7 +43,7 @@ Begin by analyzing my current file and sharing your first gentle suggestions. Le
 
 ### ⚡ **Multi-LLM Powerhouse**
 - **9 Provider Types**: OpenAI, Anthropic, Google, OpenRouter, Ollama, Groq, Together AI, LM Studio, llama.cpp
-- **Unified Interface**: Single API for all providers with intelligent routing
+- **Unified Interface**: Single API for all providers with cost-aware, context-sensitive routing
 - **Cost Tracking**: Monitor token usage and costs across all services
 - **Smart Caching**: Reduce API calls and improve response times
 
@@ -144,7 +144,8 @@ This is the ultimate expression of AI-driven development. You provide the vision
 ### **Context-Aware AI**
 - Sherlock automatically sends your current code context to LLMs
 - Maintains conversation history for better responses
-- Routes different question types to optimal models
+- **Autonomous Model Routing**: Intelligently routes requests to the optimal model based on your task, balancing cost, speed, and power
+- **Automatic Privacy Switching**: Automatically uses local models when it detects sensitive code or when you enable privacy mode
 - Learns your coding patterns over time
 
 ### **Model Specialization**
@@ -191,10 +192,11 @@ This is the ultimate expression of AI-driven development. You provide the vision
 
 ### **Model Selection Strategy**
 - **Quick Questions**: Use Groq for fast responses
-- **Complex Analysis**: Use GPT-4 or Claude Opus
+- **Complex Analysis**: Use GPT-4 or Claude Opus for deep analysis
 - **Code Generation**: Use DeepSeek Coder or Code Llama
 - **Privacy Sensitive**: Use local Ollama models
 - **Cost Conscious**: Use smaller models for simple tasks
+- **Let Sherlock Choose**: In most cases, you can let the IDE's autonomous routing select the best model for you automatically
 
 ### **Workflow Optimization**
 - Keep the Whispering HUD expanded during active coding

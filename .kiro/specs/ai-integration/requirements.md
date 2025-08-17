@@ -52,7 +52,8 @@ The AI Integration System transforms Sherlock Ω IDE into an AI-first developmen
 2. WHEN potential problems are detected THEN the system SHALL provide specific warnings with confidence scores
 3. WHEN optimization opportunities are identified THEN the system SHALL suggest improvements with expected benefits
 4. WHEN best practices are violated THEN the system SHALL provide educational explanations and alternatives
-5. IF predictions prove incorrect THEN the system SHALL learn from the feedback to improve accuracy
+5. WHEN analyzing code THEN the system SHALL utilize deep structural analysis (e.g., AST) to provide more accurate and actionable insights
+6. IF predictions prove incorrect THEN the system SHALL learn from the feedback to improve accuracy
 
 ### Requirement 5: Intelligent Debugging Assistant
 
@@ -84,11 +85,11 @@ The AI Integration System transforms Sherlock Ω IDE into an AI-first developmen
 
 #### Acceptance Criteria
 
-1. WHEN AI requests are made THEN the system SHALL select the most appropriate model based on task complexity and requirements
-2. WHEN multiple models are available THEN the system SHALL load balance requests to optimize response times
-3. WHEN cost limits are approached THEN the system SHALL switch to more economical models while maintaining quality
-4. WHEN models are unavailable THEN the system SHALL gracefully fallback to alternative providers
-5. IF model performance varies THEN the system SHALL automatically adjust routing to maintain service quality
+1. WHEN an AI request is made THEN the system SHALL automatically select the optimal model or provider by balancing task requirements (e.g., code generation vs. chat), performance, and cost
+2. WHEN routing decisions are made THEN the system SHALL consider the immediate code context to inform model selection
+3. WHEN cost tracking is enabled THEN the system SHALL provide reports and suggest more economical models for recurring tasks
+4. WHEN a model is unavailable THEN the system SHALL gracefully fallback to a suitable alternative without user intervention
+5. IF model performance varies THEN the system SHALL dynamically adjust routing preferences to maintain service quality
 
 ### Requirement 8: Privacy-Preserving AI Processing
 
@@ -96,7 +97,7 @@ The AI Integration System transforms Sherlock Ω IDE into an AI-first developmen
 
 #### Acceptance Criteria
 
-1. WHEN privacy mode is enabled THEN all AI processing SHALL occur locally without sending data to external services
+1. WHEN privacy mode is enabled OR sensitive content is detected THEN the system SHALL automatically route requests to local-only models
 2. WHEN cloud AI is used THEN data SHALL be encrypted in transit and not stored by external providers
 3. WHEN sensitive patterns are detected THEN the system SHALL automatically redact or anonymize data before processing
 4. WHEN compliance requirements exist THEN the system SHALL enforce appropriate data handling policies
