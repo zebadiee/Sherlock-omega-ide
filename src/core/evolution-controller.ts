@@ -8,11 +8,15 @@ import { Logger } from '../logging/logger';
 import { PlatformType } from './whispering-interfaces';
 import { ConsciousnessAlgorithm } from './consciousness-algorithm';
 import { PerformanceMonitor } from '../monitoring/performance-monitor';
+import { AutonomousCompiler } from './autonomous-compiler';
+import { BlueprintProcessor } from './blueprint-processor';
 
 export class EvolutionController {
   private logger: Logger;
   private consciousness: ConsciousnessAlgorithm;
   private performanceMonitor: PerformanceMonitor;
+  private autonomousCompiler: AutonomousCompiler;
+  private blueprintProcessor: BlueprintProcessor;
   private evolutionCycle: number = 0;
   private isEvolving: boolean = false;
   private evolutionHistory: EvolutionResult[] = [];
@@ -21,6 +25,8 @@ export class EvolutionController {
     this.logger = new Logger(platform);
     this.consciousness = new ConsciousnessAlgorithm();
     this.performanceMonitor = new PerformanceMonitor(platform);
+    this.autonomousCompiler = new AutonomousCompiler(platform);
+    this.blueprintProcessor = new BlueprintProcessor(platform, this);
   }
 
   async initiateEvolutionCycle(): Promise<EvolutionResult> {
@@ -480,6 +486,12 @@ describe('${type} UI Tests', () => {
 
   isEvolutionInProgress(): boolean {
     return this.isEvolving;
+  }
+
+  async initializeBlueprintDrivenEvolution(): Promise<void> {
+    this.logger.info('🤖 Initializing Blueprint-Driven Evolution...');
+    await this.blueprintProcessor.initializeBlueprintWatcher();
+    this.logger.info('✨ Blueprint-Driven Evolution ready - awaiting missions');
   }
 }
 

@@ -124,6 +124,20 @@ The terminal is your command center, running a standard shell within your projec
 - `git commit -m "feat: add new component"` - Commit your changes
 - `ls -la` - List files in the current directory
 
+## 🤖 BLUEPRINT-DRIVEN EVOLUTION
+
+This is where Sherlock Ω transcends being an "assistant" and becomes an **autonomous creator**.
+
+You can give Sherlock Ω a high-level mission to build an entire application by providing a "Blueprint." A Blueprint is a markdown file that describes the concept, features, and requirements of an application.
+
+### How It Works
+
+1. **Create a Blueprint**: Write a markdown file describing an application. Be as detailed or as high-level as you like. (e.g., `my-new-app.md`).
+2. **Provide the Mission**: Place your blueprint file inside the `.kiro/blueprints/` directory in the project root.
+3. **Observe**: Sherlock Ω will detect the new blueprint, analyze it, formulate a development plan, and begin building it autonomously. It will use its full suite of capabilities—generating features, writing tests, and even self-compiling—to bring your concept to life.
+
+This is the ultimate expression of AI-driven development. You provide the vision; Sherlock Ω handles the execution.
+
 ## 🌟 ADVANCED FEATURES
 
 ### **Context-Aware AI**
@@ -205,6 +219,7 @@ Sherlock Ω represents a fundamental shift in how we think about development env
 
 Sherlock Ω is designed to evolve continuously:
 - **Self-Improvement**: The system learns and optimizes itself
+- **Autonomous Self-Build**: The IDE will use its own terminal to compile, test, and deploy its own updates, achieving true self-evolution
 - **Community Models**: Easy integration of new Hugging Face models
 - **Plugin Architecture**: Extensible observer system
 - **Cross-Platform**: Desktop and mobile apps coming soon

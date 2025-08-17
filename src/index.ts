@@ -54,6 +54,14 @@ async function initializeBasicOrchestrator(): Promise<any> {
   // Test the pattern keeper with some sample code
   await testPatternKeeper(orchestrator);
   
+  // Initialize Blueprint-Driven Evolution if in auto mode
+  if (process.env.EVOLUTION_MODE === 'auto') {
+    const { EvolutionController } = await import('./core/evolution-controller');
+    const evolutionController = new EvolutionController('DESKTOP' as any);
+    await evolutionController.initializeBlueprintDrivenEvolution();
+    console.log('[Bootstrap] 🤖 Blueprint-Driven Evolution activated');
+  }
+  
   console.log('[Bootstrap] 🧠 Basic orchestrator initialized and tested');
   return orchestrator;
 }

@@ -24,9 +24,9 @@ The Sherlock Ω IDE Autonomous Evolution System is a self-building, self-deployi
 
 #### Acceptance Criteria
 
-1. WHEN usage patterns indicate a need for new functionality THEN the system SHALL generate feature prototypes automatically
-2. WHEN a feature prototype is generated THEN it SHALL undergo automated testing with >95% reliability threshold
-3. WHEN automated tests pass THEN the feature SHALL be deployed to all network instances without manual approval
+1. WHEN usage patterns indicate a need for new functionality OR a valid application blueprint is provided (Req 14) THEN the system SHALL generate feature prototypes automatically
+2. WHEN a feature prototype is generated THEN it SHALL undergo automated testing via the Automated Test Generation system (Req 11)
+3. WHEN automated tests pass THEN the system SHALL trigger the Autonomous Self-Compilation and Deployment process (Req 13) to build and deploy the feature
 4. WHEN feature deployment completes THEN usage metrics SHALL be tracked for continuous optimization
 5. IF a deployed feature causes performance degradation THEN it SHALL be automatically rolled back within 30 seconds
 
@@ -153,3 +153,28 @@ The Sherlock Ω IDE Autonomous Evolution System is a self-building, self-deployi
 3. WHEN queries are made THEN the knowledge base SHALL provide relevant information with <100ms response time
 4. WHEN knowledge conflicts arise THEN the system SHALL resolve them using consensus algorithms
 5. IF the knowledge base becomes corrupted THEN the system SHALL automatically restore from distributed backups
+
+### Requirement 13: Autonomous Self-Compilation and Deployment
+
+**User Story:** As an autonomous IDE, I want to use my own integrated terminal and build tools to compile, test, and deploy my own source code updates, so that I can complete the evolution cycle without any external dependencies or human intervention.
+
+#### Acceptance Criteria
+
+1. WHEN a new feature is generated and validated (Req 2) THEN the system SHALL use its integrated shell to execute its own build scripts (e.g., `npm run build`)
+2. WHEN the build is successful THEN the system SHALL execute its own test suite (e.g., `npm run test`) within the same sandboxed environment
+3. WHEN all tests pass THEN the system SHALL initiate a hot-swap deployment to replace its current running instance with the newly built version
+4. WHEN the deployment process is initiated THEN it SHALL be governed by the safety and rollback protocols defined in Evolution Safety Validation (Req 10)
+5. IF the build or test process fails THEN the system SHALL log the error, revert the source code changes, and trigger a learning cycle (Req 8) to analyze the failure
+6. The entire self-compilation process SHALL be sandboxed to prevent unintended side effects on the host system
+
+### Requirement 14: Blueprint-Driven Evolution
+
+**User Story:** As an autonomous IDE, I want to ingest high-level application blueprints, so that I can proactively generate complex, multi-component features and applications without waiting for emergent user patterns.
+
+#### Acceptance Criteria
+
+1. WHEN a new markdown blueprint is added to the `.kiro/blueprints` directory THEN the system SHALL parse it to identify core features, UI components, and logic
+2. WHEN a blueprint is parsed THEN the system SHALL generate a high-level architecture and a task dependency graph for the new application
+3. WHEN the plan is formulated THEN the system SHALL trigger a series of Autonomous Feature Generation tasks (Req 2) for each component
+4. WHEN building from a blueprint THEN the system SHALL use the full suite of autonomous capabilities (Req 10, 11, 13) to build, test, and deploy the application
+5. IF a blueprint is ambiguous or incomplete THEN the system SHALL ask clarifying questions in the Whispering HUD before proceeding
