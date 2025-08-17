@@ -100,7 +100,7 @@ graph LR
 
 ### AI Orchestrator
 
-The central coordination component that manages all AI interactions and ensures optimal resource utilization.
+The central coordination component that manages all AI interactions and ensures optimal resource utilization. It is responsible for cost-aware routing, leveraging providers like OpenRouter to balance performance, capability, and cost for each request.
 
 ```typescript
 interface AIOrchestrator {
@@ -118,6 +118,9 @@ interface AIOrchestrator {
   recordUserFeedback(feedback: UserFeedback): void;
   updateModelPreferences(preferences: ModelPreferences): void;
   triggerModelRetraining(): Promise<void>;
+  
+  // Cost analysis and optimization
+  getCostAnalysis(request: AIRequest): Promise<CostAnalysisReport>;
 }
 
 interface AIRequest {
@@ -235,7 +238,7 @@ interface PredictiveAnalytics {
   suggestOptimizations(code: string): Promise<OptimizationSuggestion[]>;
   
   // Pattern analysis
-  identifyPatterns(codebase: Codebase): Promise<CodePattern[]>;
+  identifyPatterns(codebase: Codebase, useAST?: boolean): Promise<CodePattern[]>;
   detectAntiPatterns(code: string): Promise<AntiPattern[]>;
   recommendBestPractices(context: CodeContext): Promise<BestPractice[]>;
   
@@ -356,6 +359,24 @@ interface CodingStyle {
   indentation: 'tabs' | 'spaces';
   indentSize: number;
   namingConvention: 'camelCase' | 'snake_case' | 'PascalCase';
+}
+
+interface CostAnalysisReport {
+  requestId: string;
+  totalCost: number;
+  breakdown: {
+    modelUsed: string;
+    provider: string;
+    inputTokens: number;
+    outputTokens: number;
+    costPerToken: number;
+  }[];
+  recommendations: {
+    alternativeModel?: string;
+    potentialSavings?: number;
+    reasonForRecommendation?: string;
+  };
+  timestamp: Date;
 }
 
 // Learning and adaptation models
@@ -578,10 +599,11 @@ const codeSnippet = `function factorial(n) {
 
 predictiveAnalytics.identifyPatterns({
   files: [{ path: 'current.js', content: codeSnippet }]
-}).then((patterns) => {
+}, true).then((patterns) => { // 'true' enables AST-based analysis for deeper insights
   patterns.forEach(pattern => {
     // e.g., pattern.name = "Recursive Function"
     console.log('Insight from Pattern Keeper:', pattern.description);
+    console.log('AST Analysis:', pattern.astMetadata);
    });
 });
 ```

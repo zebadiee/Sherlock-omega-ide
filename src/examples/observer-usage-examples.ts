@@ -228,6 +228,12 @@ interface CodePattern {
   confidence: number;
   suggestions?: string[];
   warnings?: string[];
+  astMetadata?: {
+    nodeType: string;
+    complexity: number;
+    depth: number;
+    cyclomaticComplexity?: number;
+  };
 }
 
 interface CommandResult {
@@ -246,7 +252,7 @@ interface CodeFile {
 
 // Mock implementations for demonstration
 class PredictiveAnalytics {
-  async identifyPatterns(input: { files: CodeFile[] }): Promise<CodePattern[]> {
+  async identifyPatterns(input: { files: CodeFile[] }, useAST: boolean = false): Promise<CodePattern[]> {
     // Mock pattern recognition
     const code = input.files[0]?.content || '';
     const patterns: CodePattern[] = [];
@@ -257,7 +263,13 @@ class PredictiveAnalytics {
         description: 'Function calls itself with modified parameters',
         confidence: 0.95,
         suggestions: ['Consider iterative approach for large inputs'],
-        warnings: ['Stack overflow risk for n > 1000']
+        warnings: ['Stack overflow risk for n > 1000'],
+        astMetadata: useAST ? {
+          nodeType: 'FunctionDeclaration',
+          complexity: 2,
+          depth: 3,
+          cyclomaticComplexity: 2
+        } : undefined
       });
     }
 
