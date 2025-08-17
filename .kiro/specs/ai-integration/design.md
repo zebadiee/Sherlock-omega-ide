@@ -563,6 +563,46 @@ interface SecurityManager {
   validateAPICredentials(credentials: APICredentials): Promise<ValidationResult>;
   monitorSecurityThreats(monitoring: SecurityMonitoring): Promise<ThreatReport>;
 }
+
+## Usage Examples
+
+### Example 1: Proactive Insight Generation (Pattern Keeper Observer)
+
+This example shows how an observer, part of the `PredictiveAnalytics` engine, might analyze a code snippet proactively to find patterns.
+
+```typescript
+// Assumes an instance of the PredictiveAnalytics engine is available
+const codeSnippet = `function factorial(n) {
+  return n <= 1 ? 1 : n * factorial(n - 1);
+}`;
+
+predictiveAnalytics.identifyPatterns({
+  files: [{ path: 'current.js', content: codeSnippet }]
+}).then((patterns) => {
+  patterns.forEach(pattern => {
+    // e.g., pattern.name = "Recursive Function"
+    console.log('Insight from Pattern Keeper:', pattern.description);
+   });
+});
+```
+
+### Example 2: User-Initiated Command (Whispering HUD)
+
+This demonstrates how a natural language command from the user is processed by the `NLPProcessor`.
+
+```typescript
+// Assumes an instance of the NLPProcessor is available
+const userCommand = "Explain this recursive function";
+const ideContext = {
+  currentFile: 'current.js',
+  selection: { startLine: 1, endLine: 3 }
+};
+
+nlpProcessor.processCommand(userCommand, ideContext).then(result => {
+  // The result would contain the explanation to be displayed in the UI.
+  console.log('AI Response:', result.action.parameters.explanationText);
+});
+```
 ```
 
 This comprehensive design provides the foundation for implementing the AI Integration System that will power Cycle 4 evolution of Sherlock Ω IDE. The architecture ensures scalability, privacy, performance, and seamless integration with existing IDE components while providing advanced AI capabilities across all development workflows.

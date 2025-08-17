@@ -115,6 +115,7 @@ Try these in the Whispering HUD:
 - "Find bugs in this implementation"
 - "Generate tests for this class"
 - "Refactor this to use modern patterns"
+- "Explain this recursive function"
 - "What's the time complexity?"
 
 ### **Integrated Terminal**
@@ -165,6 +166,8 @@ This is the ultimate expression of AI-driven development. You provide the vision
 2. Ask: "Review this code for potential issues"
 3. Watch as Sherlock analyzes with multiple observers
 4. Get suggestions from Pattern Keeper, Systems Philosopher, and Cosmic Cartographer
+
+> **Behind the Scenes:** When you ask for a review, Sherlock's observers programmatically analyze your code for specific insights (e.g., recursion, complexity). The system then synthesizes these findings into a coherent explanation for you.
 
 ### **Scenario 2: Learning New Concepts**
 1. Paste unfamiliar code
