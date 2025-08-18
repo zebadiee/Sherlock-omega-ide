@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherlock Ω - AI Bot Manager</title>
+    <link rel="stylesheet" href="bot-manager-styles.css">
+</head>
+<body>
+    <div class="manager-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-title">🤖 AI Bot Manager</div>
+            <div class="header-actions">
+                <button class="action-btn" onclick="createNewBot()">+ Create Bot</button>
+                <button class="action-btn" onclick="importBot()">📥 Import</button>
+                <button class="action-btn" onclick="exportRegistry()">📤 Export</button>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="section-title">Active Bots</div>
+                <div class="bot-list" id="activeBotsList">
+                    <!-- Active bots will be populated here -->
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-title">Build Sessions</div>
+                <div class="bot-list" id="buildSessionsList">
+                    <!-- Build sessions will be populated here -->
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-title">Statistics</div>
+                <div style="color: #aaa; font-size: 12px;">
+                    <div>Total Bots: <span id="totalBots">0</span></div>
+                    <div>Active: <span id="activeBots">0</span></div>
+                    <div>Building: <span id="buildingSessions">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-tabs">
+                <div class="tab active" onclick="switchTab('registry')">🗂️ Bot Registry</div>
+                <div class="tab" onclick="switchTab('builder')">🏗️ Bot Builder</div>
+                <div class="tab" onclick="switchTab('analytics')">📊 Analytics</div>
+            </div>
+
+            <div class="content-area">
+                <!-- Bot Registry View -->
+                <div class="registry-view active" id="registryView">
+                    <input type="text" class="search-bar" placeholder="Search bots..." id="searchInput">
+                    <div class="bot-grid" id="botGrid">
+                        <!-- Bot cards will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Bot Builder View -->
+                <div class="builder-view" id="builderView">
+                    <div class="builder-input">
+                        <h3>Describe Your Bot</h3>
+                        <textarea id="botDescription" placeholder="Describe what you want your bot to do..."></textarea>
+                        <button class="action-btn" onclick="startBotBuild()">🚀 Start Building</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="bot-manager-script.js"></script>
+</body>
+</html>

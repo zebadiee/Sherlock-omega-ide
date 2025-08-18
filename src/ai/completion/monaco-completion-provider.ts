@@ -129,10 +129,20 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
         triggerKind: context.triggerKind
       });
 
-      // Check cancellation
+      // Early cancellation check
       if (token.isCancellationRequested) {
+        this.logger.info('Completion request cancelled by user action.');
         return { suggestions: [] };
       }
+
+      // Calculate word range for completion
+      const word = model.getWordUntilPosition(position);
+      const range = new monaco.Range(
+        position.lineNumber,
+        word.startColumn,
+        position.lineNumber,
+        word.endColumn
+      );
 
       // Get file path and content
       const filePath = model.uri.fsPath;
@@ -143,7 +153,9 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
         const cached = this.getCachedCompletions(filePath, position);
         if (cached) {
           this.stats.cacheHitRate = (this.stats.cacheHitRate * (this.stats.totalRequests - 1) + 1) / this.stats.totalRequests;
-          return { suggestions: cached };
+          // Ensure cached items have proper range
+          const cachedWithRange = cached.map(item => ({ ...item, range }));
+          return { suggestions: cachedWithRange };
         }
       }
 
@@ -159,12 +171,12 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
         return { suggestions: [] };
       }
 
-      // Get completion suggestions
+      // Get completion suggestions with proper range
       const suggestions = await this.getCompletionSuggestions(
         completionContext,
         context,
         token,
-        position
+        range
       );
 
       // Cache results
@@ -303,13 +315,13 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
     context: CompletionContext,
     monacoContext: monaco.languages.CompletionContext,
     token: monaco.CancellationToken,
-    position?: monaco.Position
+    range: monaco.IRange
   ): Promise<AICompletionItem[]> {
     const suggestions: AICompletionItem[] = [];
 
     // Get local completions first (fast)
     if (this.config.enableLocalCompletion) {
-      const localSuggestions = await this.getLocalCompletions(context, position);
+      const localSuggestions = await this.getLocalCompletions(context, range);
       suggestions.push(...localSuggestions);
     }
 
@@ -321,7 +333,7 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
     // Get AI completions if enabled and context is suitable
     if (this.config.enableAICompletion && this.shouldUseAICompletion(context, monacoContext)) {
       try {
-        const aiSuggestions = await this.getAICompletions(context, token, position);
+        const aiSuggestions = await this.getAICompletions(context, token, range);
         suggestions.push(...aiSuggestions);
       } catch (error) {
         this.logger.warn('AI completion failed, using local only', {
@@ -337,7 +349,7 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
     return mergedSuggestions.slice(0, this.config.maxSuggestions);
   }
 
-  private async getLocalCompletions(context: CompletionContext, position?: monaco.Position): Promise<AICompletionItem[]> {
+  private async getLocalCompletions(context: CompletionContext, range: monaco.IRange): Promise<AICompletionItem[]> {
     const startTime = Date.now();
     
     try {
@@ -349,7 +361,7 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
 
       // Convert to Monaco completion items
       const items = rankedCompletions.map(completion => 
-        this.convertToMonacoItem(completion, 'local', Date.now() - startTime, position)
+        this.convertToMonacoItem(completion, 'local', Date.now() - startTime, range)
       );
 
       this.logger.debug('Local completions generated', {
@@ -370,7 +382,7 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
   private async getAICompletions(
     context: CompletionContext,
     token: monaco.CancellationToken,
-    position?: monaco.Position
+    range: monaco.IRange
   ): Promise<AICompletionItem[]> {
     const startTime = Date.now();
 
@@ -407,7 +419,7 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
       }
 
       // Parse AI response into completion items
-      const items = this.parseAIResponse(aiResponse, Date.now() - startTime, position);
+      const items = this.parseAIResponse(aiResponse, Date.now() - startTime, range);
 
       this.logger.debug('AI completions generated', {
         count: items.length,
@@ -458,7 +470,7 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
     return beforeCursor;
   }
 
-  private parseAIResponse(aiResponse: any, processingTime: number, position?: monaco.Position): AICompletionItem[] {
+  private parseAIResponse(aiResponse: any, processingTime: number, range: monaco.IRange): AICompletionItem[] {
     try {
       const result = aiResponse.result as string;
       if (!result || result.trim().length === 0) {
@@ -478,12 +490,7 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
         detail: `AI suggestion (${aiResponse.modelUsed})`,
         documentation: `Generated by AI with ${(aiResponse.confidence * 100).toFixed(1)}% confidence`,
         sortText: `ai_${index.toString().padStart(3, '0')}`,
-        range: position ? new monaco.Range(
-          position.lineNumber,
-          position.column,
-          position.lineNumber,
-          position.column
-        ) : new monaco.Range(1, 1, 1, 1),
+        range: range,
         aiMetadata: {
           confidence: aiResponse.confidence,
           relevanceFactors: ['ai_generated'],
@@ -504,7 +511,7 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
     completion: RankedCompletion,
     source: string,
     processingTime: number,
-    position?: monaco.Position
+    range: monaco.IRange
   ): AICompletionItem {
     return {
       label: completion.displayText,
@@ -514,12 +521,7 @@ export class MonacoCompletionProvider implements monaco.languages.CompletionItem
       documentation: completion.documentation,
       sortText: completion.sortText,
       filterText: completion.filterText,
-      range: position ? new monaco.Range(
-        position.lineNumber,
-        position.column,
-        position.lineNumber,
-        position.column
-      ) : new monaco.Range(1, 1, 1, 1),
+      range: range,
       aiMetadata: {
         confidence: completion.confidence,
         relevanceFactors: completion.relevanceFactors.map(f => f.type),

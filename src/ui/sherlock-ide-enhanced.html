@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherlock Ω IDE - Enhanced with OpenRouter AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <style>
+        .file-tree-item:hover { background-color: rgba(75, 85, 99, 0.5); }
+        .file-tree-item.active { background-color: rgba(59, 130, 246, 0.3); }
+        .ai-thinking { animation: pulse 2s infinite; }
+        .typing-animation { 
+            border-right: 2px solid #3B82F6;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { border-color: #3B82F6; }
+            51%, 100% { border-color: transparent; }
+        }
+        .config-modal {
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white h-screen overflow-hidden">
+    
+    <!-- AI Configuration Modal -->
+    <div id="config-modal" class="fixed inset-0 bg-black bg-opacity-50 config-modal hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">AI Configuration</h3>
+                <button id="close-config" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">OpenRouter API Key</label>
+                    <input 
+                        id="api-key-input" 
+                        type="password" 
+                        placeholder="sk-or-..."
+                        class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    >
+                    <p class="text-xs text-gray-400 mt-1">Get your key from <a href="https://openrouter.ai" target="_blank" class="text-blue-400">openrouter.ai</a></p>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="enable-ai" class="rounded">
+                    <label for="enable-ai" class="text-sm">Enable AI-powered code generation</label>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="safety-checks" checked class="rounded">
+                    <label for="safety-checks" class="text-sm">Enable safety validation</label>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-6">
+                <button id="save-config" class="flex-1 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm">
+                    Save Configuration
+                </button>
+                <button id="test-connection" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm">
+                    Test Connection
+                </button>
+            </div>
+            
+            <div id="config-status" class="mt-3 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <!-- Main IDE Layout -->
+    <div class="flex flex-col h-screen">
+        
+        <!-- Top Menu Bar -->
+        <div class="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-5 h-5 text-blue-400"></i>
+                    <span class="font-bold text-lg">Sherlock Ω IDE</span>
+                </div>
+                <div class="text-sm text-gray-400">Enhanced with OpenRouter AI</div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div id="ai-status" class="flex items-center space-x-2 text-gray-400">
+                    <i data-lucide="brain" class="w-4 h-4"></i>
+                    <span class="text-sm">AI: Not Configured</span>
+                </div>
+                <button id="config-btn" class="bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded text-sm">
+                    Configure AI
+                </button>
+            </div>
+        </div>
+
+        <!-- Rest of IDE layout... -->   
+     <!-- Main IDE Content -->
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar - File Explorer -->
+            <div class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+                <div class="p-3 border-b border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-semibold text-sm">EXPLORER</h3>
+                        <button id="new-file-btn" class="text-gray-400 hover:text-white">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="file-tree" class="flex-1 overflow-y-auto p-2">
+                    <!-- File tree populated by JS -->
+                </div>
+                
+                <!-- AI Model Selection -->
+                <div class="border-t border-gray-700 p-3">
+                    <h4 class="text-xs font-semibold text-gray-400 mb-2">AI MODEL</h4>
+                    <select id="model-select" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs">
+                        <option value="anthropic/claude-3-sonnet">Claude 3 Sonnet</option>
+                        <option value="anthropic/claude-3-haiku">Claude 3 Haiku</option>
+                        <option value="openai/gpt-4-turbo">GPT-4 Turbo</option>
+                        <option value="openai/gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Main Editor Area -->
+            <div class="flex-1 flex flex-col">
+                <div id="tab-bar" class="bg-gray-800 border-b border-gray-700 flex items-center px-2 min-h-[40px]">
+                    <!-- Tabs added by JS -->
+                </div>
+
+                <div class="flex-1 relative">
+                    <div id="editor-container" class="w-full h-full"></div>
+                    
+                    <!-- AI Processing Overlay -->
+                    <div id="ai-overlay" class="absolute inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+                        <div class="bg-gray-800 rounded-lg p-6 max-w-md">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="ai-thinking">
+                                    <i data-lucide="brain" class="w-6 h-6 text-purple-400"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold">AI Processing</h3>
+                                    <p id="ai-status-text" class="text-sm text-gray-400">Thinking...</p>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div id="ai-progress" class="bg-purple-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <div class="mt-3 text-xs text-gray-400">
+                                Model: <span id="current-model">Claude 3 Sonnet</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar - Enhanced AI Assistant -->
+            <div class="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
+                
+                <!-- AI Chat Header -->
+                <div class="p-3 border-b border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="brain" class="w-5 h-5 text-purple-400"></i>
+                            <h3 class="font-semibold">AI Assistant</h3>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div id="token-count" class="text-xs text-gray-400">0 tokens</div>
+                            <button id="clear-chat" class="text-gray-400 hover:text-white">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-3">
+                    <div class="bg-gray-700 rounded-lg p-3">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <i data-lucide="shield" class="w-4 h-4 text-blue-400"></i>
+                            <span class="text-sm font-semibold">Sherlock Ω</span>
+                        </div>
+                        <p class="text-sm">Hello! I'm powered by advanced AI models through OpenRouter. Configure your API key to unlock:</p>
+                        <ul class="text-xs text-gray-300 mt-2 space-y-1">
+                            <li>• Real AI-powered code generation</li>
+                            <li>• Intelligent conversations</li>
+                            <li>• Code review and debugging</li>
+                            <li>• Multiple model selection</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Enhanced Chat Input -->
+                <div class="border-t border-gray-700 p-3">
+                    <div class="flex space-x-2 mb-2">
+                        <input 
+                            id="chat-input" 
+                            type="text" 
+                            placeholder="Ask me anything or describe what to build..."
+                            class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+                        >
+                        <button id="send-btn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center space-x-3">
+                            <label class="flex items-center space-x-1">
+                                <input type="checkbox" id="auto-implement" checked class="rounded">
+                                <span class="text-gray-400">Auto-implement</span>
+                            </label>
+                            <label class="flex items-center space-x-1">
+                                <input type="checkbox" id="include-context" checked class="rounded">
+                                <span class="text-gray-400">Include context</span>
+                            </label>
+                        </div>
+                        <div id="model-indicator" class="text-gray-400">Claude 3 Sonnet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Status Bar -->
+        <div class="bg-gray-800 border-t border-gray-700 px-4 py-2 flex items-center justify-between text-sm">
+            <div class="flex items-center space-x-4">
+                <span id="current-file">No file selected</span>
+                <span class="text-gray-400">|</span>
+                <span id="cursor-position">Ln 1, Col 1</span>
+                <span class="text-gray-400">|</span>
+                <span id="file-encoding">UTF-8</span>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div id="ai-connection-status" class="flex items-center space-x-1 text-gray-400">
+                    <i data-lucide="wifi-off" class="w-4 h-4"></i>
+                    <span>AI: Offline</span>
+                </div>
+                <div id="safety-status" class="flex items-center space-x-1 text-green-400">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Safety: Active</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Enhanced AI Integration
+        class SherlockAI {
+            constructor() {
+                this.apiKey = localStorage.getItem('openrouter-api-key') || '';
+                this.baseUrl = 'https://openrouter.ai/api/v1';
+                this.currentModel = 'anthropic/claude-3-sonnet';
+                this.tokenCount = 0;
+                this.isConfigured = !!this.apiKey;
+                
+                this.updateUIStatus();
+            }
+
+            async callAI(prompt, task = 'chat', context = '') {
+                if (!this.isConfigured) {
+                    throw new Error('AI not configured. Please add your OpenRouter API key.');
+                }
+
+                const systemPrompts = {
+                    chat: 'You are Sherlock Ω, a helpful AI assistant in a development IDE. Be conversational and helpful.',
+                    code: 'You are Sherlock Ω, an expert code generator. Generate clean, production-ready code with comments and error handling.',
+                    review: 'You are Sherlock Ω, a code reviewer. Provide constructive feedback and suggestions.',
+                    debug: 'You are Sherlock Ω, a debugging expert. Help identify and fix code issues.'
+                };
+
+                const messages = [
+                    { role: 'system', content: systemPrompts[task] || systemPrompts.chat },
+                    { role: 'user', content: context ? `Context: ${context}\n\nRequest: ${prompt}` : prompt }
+                ];
+
+                try {
+                    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.apiKey}`,
+                            'Content-Type': 'application/json',
+                            'HTTP-Referer': 'https://sherlock-omega-ide.dev',
+                            'X-Title': 'Sherlock Ω IDE'
+                        },
+                        body: JSON.stringify({
+                            model: this.currentModel,
+                            messages: messages,
+                            max_tokens: 4000,
+                            temperature: 0.7
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    this.tokenCount += data.usage?.total_tokens || 0;
+                    this.updateTokenDisplay();
+
+                    return {
+                        content: data.choices[0].message.content,
+                        model: data.model,
+                        tokens: data.usage?.total_tokens || 0
+                    };
+                } catch (error) {
+                    console.error('AI API call failed:', error);
+                    throw error;
+                }
+            }
+
+            setApiKey(key) {
+                this.apiKey = key;
+                this.isConfigured = !!key;
+                localStorage.setItem('openrouter-api-key', key);
+                this.updateUIStatus();
+            }
+
+            setModel(model) {
+                this.currentModel = model;
+                document.getElementById('model-indicator').textContent = model.split('/')[1] || model;
+                document.getElementById('current-model').textContent = model.split('/')[1] || model;
+            }
+
+            updateUIStatus() {
+                const aiStatus = document.getElementById('ai-status');
+                const connectionStatus = document.getElementById('ai-connection-status');
+                
+                if (this.isConfigured) {
+                    aiStatus.innerHTML = '<i data-lucide="brain" class="w-4 h-4"></i><span class="text-sm">AI: Ready</span>';
+                    aiStatus.className = 'flex items-center space-x-2 text-green-400';
+                    
+                    connectionStatus.innerHTML = '<i data-lucide="wifi" class="w-4 h-4"></i><span>AI: Online</span>';
+                    connectionStatus.className = 'flex items-center space-x-1 text-green-400';
+                } else {
+                    aiStatus.innerHTML = '<i data-lucide="brain" class="w-4 h-4"></i><span class="text-sm">AI: Not Configured</span>';
+                    aiStatus.className = 'flex items-center space-x-2 text-gray-400';
+                    
+                    connectionStatus.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4"></i><span>AI: Offline</span>';
+                    connectionStatus.className = 'flex items-center space-x-1 text-gray-400';
+                }
+                
+                lucide.createIcons();
+            }
+
+            updateTokenDisplay() {
+                document.getElementById('token-count').textContent = `${this.tokenCount} tokens`;
+            }
+
+            async testConnection() {
+                try {
+                    await this.callAI('Hello, please respond with "Connection successful"', 'chat');
+                    return { success: true };
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            }
+        }
+
+        // Initialize AI
+        const ai = new SherlockAI();
+        
+        // Initialize Monaco Editor and other IDE components
+        let editor = null;
+        let currentFile = null;
+        let files = {
+            'README.md': {
+                content: '# My AI-Powered Project\n\nThis project was created with Sherlock Ω IDE using real AI models.\n\n## Features\n\n- OpenRouter AI integration\n- Multiple model support\n- Intelligent code generation\n- Safety validation\n\n## Getting Started\n\nConfigure your OpenRouter API key and start building!',
+                language: 'markdown'
+            }
+        };
+
+        // Monaco Editor setup
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('editor-container'), {
+                value: files['README.md'].content,
+                language: 'markdown',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                fontSize: 14,
+                minimap: { enabled: true }
+            });
+
+            currentFile = 'README.md';
+            updateStatusBar();
+            renderFileTree();
+        });
+
+        // UI Helper Functions
+        function renderFileTree() {
+            const fileTree = document.getElementById('file-tree');
+            fileTree.innerHTML = '';
+
+            Object.keys(files).forEach(filename => {
+                const fileItem = document.createElement('div');
+                fileItem.className = `file-tree-item cursor-pointer px-2 py-1 rounded text-sm flex items-center space-x-2 ${currentFile === filename ? 'active' : ''}`;
+                
+                const icon = getFileIcon(filename);
+                fileItem.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i><span>${filename}</span>`;
+                
+                fileItem.addEventListener('click', () => openFile(filename));
+                fileTree.appendChild(fileItem);
+            });
+
+            lucide.createIcons();
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                'js': 'file-code', 'ts': 'file-code', 'jsx': 'file-code', 'tsx': 'file-code',
+                'html': 'file-code', 'css': 'file-code', 'json': 'braces',
+                'md': 'file-text', 'txt': 'file-text', 'py': 'file-code'
+            };
+            return iconMap[ext] || 'file';
+        }
+
+        function openFile(filename) {
+            if (!files[filename] || !editor) return;
+
+            currentFile = filename;
+            const file = files[filename];
+            
+            editor.setValue(file.content);
+            monaco.editor.setModelLanguage(editor.getModel(), file.language || 'javascript');
+            
+            document.getElementById('current-file').textContent = filename;
+            renderFileTree();
+            updateStatusBar();
+        }
+
+        function updateStatusBar() {
+            if (editor) {
+                const position = editor.getPosition();
+                document.getElementById('cursor-position').textContent = 
+                    `Ln ${position.lineNumber}, Col ${position.column}`;
+            }
+        }
+
+        function addChatMessage(sender, message, isUser = false) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${isUser ? 'bg-blue-600' : 'bg-gray-700'} rounded-lg p-3`;
+            
+            messageDiv.innerHTML = `
+                <div class="flex items-center space-x-2 mb-2">
+                    <i data-lucide="${isUser ? 'user' : 'shield'}" class="w-4 h-4 ${isUser ? 'text-blue-200' : 'text-purple-400'}"></i>
+                    <span class="text-sm font-semibold">${sender}</span>
+                </div>
+                <div class="text-sm whitespace-pre-wrap">${message}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            lucide.createIcons();
+        }
+
+        function showAIOverlay(status = 'Processing...') {
+            document.getElementById('ai-status-text').textContent = status;
+            document.getElementById('ai-overlay').classList.remove('hidden');
+            document.getElementById('ai-overlay').classList.add('flex');
+        }
+
+        function hideAIOverlay() {
+            document.getElementById('ai-overlay').classList.add('hidden');
+            document.getElementById('ai-overlay').classList.remove('flex');
+        }
+
+        function shouldGenerateCode(message) {
+            const codeKeywords = ['create', 'build', 'make', 'generate', 'write', 'implement', 'add', 'function', 'component', 'class', 'api', 'server', 'app'];
+            const questionKeywords = ['what', 'how', 'why', 'when', 'where', 'explain', 'tell me', '?'];
+            
+            const lowerMessage = message.toLowerCase();
+            
+            if (questionKeywords.some(keyword => lowerMessage.includes(keyword))) {
+                return false;
+            }
+            
+            return codeKeywords.some(keyword => lowerMessage.includes(keyword));
+        }
+
+        // Event Listeners
+        document.getElementById('config-btn').addEventListener('click', () => {
+            document.getElementById('config-modal').classList.remove('hidden');
+            document.getElementById('config-modal').classList.add('flex');
+            document.getElementById('api-key-input').value = ai.apiKey;
+            document.getElementById('enable-ai').checked = ai.isConfigured;
+        });
+
+        document.getElementById('close-config').addEventListener('click', () => {
+            document.getElementById('config-modal').classList.add('hidden');
+        });
+
+        document.getElementById('save-config').addEventListener('click', () => {
+            const apiKey = document.getElementById('api-key-input').value.trim();
+            ai.setApiKey(apiKey);
+            
+            const status = document.getElementById('config-status');
+            status.className = 'mt-3 text-sm text-green-400';
+            status.textContent = 'Configuration saved successfully!';
+            status.classList.remove('hidden');
+            
+            setTimeout(() => {
+                document.getElementById('config-modal').classList.add('hidden');
+                status.classList.add('hidden');
+            }, 2000);
+        });
+
+        document.getElementById('test-connection').addEventListener('click', async () => {
+            const apiKey = document.getElementById('api-key-input').value.trim();
+            if (!apiKey) {
+                const status = document.getElementById('config-status');
+                status.className = 'mt-3 text-sm text-red-400';
+                status.textContent = 'Please enter an API key first';
+                status.classList.remove('hidden');
+                return;
+            }
+
+            ai.setApiKey(apiKey);
+            const status = document.getElementById('config-status');
+            status.className = 'mt-3 text-sm text-blue-400';
+            status.textContent = 'Testing connection...';
+            status.classList.remove('hidden');
+
+            try {
+                const result = await ai.testConnection();
+                if (result.success) {
+                    status.className = 'mt-3 text-sm text-green-400';
+                    status.textContent = 'Connection successful!';
+                } else {
+                    status.className = 'mt-3 text-sm text-red-400';
+                    status.textContent = `Connection failed: ${result.error}`;
+                }
+            } catch (error) {
+                status.className = 'mt-3 text-sm text-red-400';
+                status.textContent = `Connection failed: ${error.message}`;
+            }
+        });
+
+        document.getElementById('model-select').addEventListener('change', (e) => {
+            ai.setModel(e.target.value);
+        });
+
+        document.getElementById('send-btn').addEventListener('click', async () => {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            if (!ai.isConfigured) {
+                addChatMessage('Sherlock Ω', 'Please configure your OpenRouter API key first by clicking "Configure AI" in the top menu.');
+                return;
+            }
+            
+            addChatMessage('You', message, true);
+            input.value = '';
+
+            try {
+                showAIOverlay('AI is thinking...');
+                
+                const context = document.getElementById('include-context').checked && currentFile ? 
+                    `Current file: ${currentFile}\nContent: ${editor.getValue()}` : '';
+                
+                const task = shouldGenerateCode(message) ? 'code' : 'chat';
+                const response = await ai.callAI(message, task, context);
+                
+                hideAIOverlay();
+                addChatMessage('Sherlock Ω', response.content);
+                
+                // If it's code and auto-implement is enabled, create a new file
+                if (task === 'code' && document.getElementById('auto-implement').checked) {
+                    const filename = `generated_${Date.now()}.js`;
+                    files[filename] = {
+                        content: response.content,
+                        language: 'javascript'
+                    };
+                    renderFileTree();
+                    openFile(filename);
+                    addChatMessage('Sherlock Ω', `I've created ${filename} with the generated code!`);
+                }
+                
+            } catch (error) {
+                hideAIOverlay();
+                addChatMessage('Sherlock Ω', `Sorry, I encountered an error: ${error.message}`);
+            }
+        });
+
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('send-btn').click();
+            }
+        });
+
+        document.getElementById('clear-chat').addEventListener('click', () => {
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = `
+                <div class="bg-gray-700 rounded-lg p-3">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i data-lucide="shield" class="w-4 h-4 text-purple-400"></i>
+                        <span class="text-sm font-semibold">Sherlock Ω</span>
+                    </div>
+                    <p class="text-sm">Chat cleared. How can I help you today?</p>
+                </div>
+            `;
+            lucide.createIcons();
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

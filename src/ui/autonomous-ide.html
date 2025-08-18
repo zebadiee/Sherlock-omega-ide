@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherlock Ω - Autonomous IDE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <style>
+        .file-item:hover { background-color: rgba(75, 85, 99, 0.5); }
+        .file-item.active { background-color: rgba(59, 130, 246, 0.3); }
+        .bot-pulse { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white h-screen overflow-hidden">
+    
+    <!-- Bot Builder Modal -->
+    <div id="bot-builder-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+        <div id="bot-builder-container" class="w-full max-w-6xl max-h-full overflow-y-auto">
+            <!-- Bot builder content will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Main IDE Layout -->
+    <div class="flex flex-col h-screen">
+        
+        <!-- Header with Bot Management -->
+        <div class="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-5 h-5 text-blue-400"></i>
+                    <span class="font-bold">Sherlock Ω</span>
+                </div>
+                <div class="text-sm text-gray-400">Autonomous Development Environment</div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button id="create-bot-btn" class="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm flex items-center space-x-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Create AI Bot</span>
+                </button>
+                <div id="autonomous-indicator" class="flex items-center space-x-2 text-green-400 bot-pulse">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                    <span class="text-sm">Autonomous</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar -->
+            <div class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+                
+                <!-- File Explorer -->
+                <div class="flex-1">
+                    <div class="p-3 border-b border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-semibold">FILES</span>
+                            <button id="new-file" class="text-gray-400 hover:text-white">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="file-list" class="p-2">
+                        <!-- Files populated by JS -->
+                    </div>
+                </div>
+
+                <!-- AI Bots Panel -->
+                <div class="border-t border-gray-700">
+                    <div class="p-3 border-b border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-semibold">AI BOTS</span>
+                            <button id="add-bot" class="text-gray-400 hover:text-white">
+                                <i data-lucide="bot" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="bot-list" class="p-2 max-h-32 overflow-y-auto">
+                        <div class="text-xs text-gray-400 text-center py-2">No custom bots yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Editor -->
+            <div class="flex-1 flex flex-col">
+                <div id="editor-tabs" class="bg-gray-800 border-b border-gray-700 px-2 py-1 min-h-[40px]">
+                    <!-- Tabs -->
+                </div>
+                <div id="editor-container" class="flex-1"></div>
+            </div>
+
+            <!-- Right Sidebar - Multi-Bot Chat -->
+            <div class="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
+                
+                <!-- Chat Tabs -->
+                <div class="border-b border-gray-700">
+                    <div id="chat-tabs" class="flex overflow-x-auto">
+                        <div class="chat-tab active bg-gray-700 px-3 py-2 text-sm cursor-pointer flex items-center space-x-2" data-bot="main">
+                            <i data-lucide="brain" class="w-4 h-4 text-purple-400"></i>
+                            <span>Main AI</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div id="chat-area" class="flex-1 overflow-y-auto p-3">
+                    <div id="main-chat" class="chat-content space-y-3">
+                        <div class="bg-gray-700 rounded p-3">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <i data-lucide="shield" class="w-4 h-4 text-blue-400"></i>
+                                <span class="text-sm font-semibold">Sherlock Ω</span>
+                            </div>
+                            <p class="text-sm">I'm your autonomous development assistant! I can:</p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• Answer questions: "What is 2+2?"</li>
+                                <li>• Generate code: "Create a React todo app"</li>
+                                <li>• Build APIs: "Make a REST server"</li>
+                                <li>• Create AI bots: Click "Create AI Bot" above!</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="border-t border-gray-700 p-3">
+                    <div class="flex space-x-2">
+                        <input 
+                            id="chat-input" 
+                            type="text" 
+                            placeholder="Ask me anything or describe what to build..."
+                            class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+                        >
+                        <button id="send-btn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 text-xs">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-gray-400">Active Bot:</span>
+                            <span id="active-bot" class="text-purple-400">Main AI</span>
+                        </div>
+                        <div class="text-gray-400">Ready</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="bg-gray-800 border-t border-gray-700 px-4 py-1 flex items-center justify-between text-sm">
+            <div class="flex items-center space-x-4">
+                <span id="current-file-status">Welcome.md</span>
+                <span class="text-gray-400">|</span>
+                <span id="cursor-info">Ln 1, Col 1</span>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <span id="bot-count" class="text-gray-400">Bots: 1</span>
+                <span class="text-gray-400">|</span>
+                <span class="text-green-400">Autonomous: Active</span>
+            </div>
+        </div>
+    </div>

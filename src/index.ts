@@ -1,9 +1,10 @@
 /**
  * Sherlock Ω IDE - Bootstrap Entry Point
- * Minimal working version to break the development loop
+ * Enhanced with process management and quantum computing support
  */
 
 import { Logger } from './logging/logger';
+import { processManager } from './utils/process-manager';
 
 async function bootstrap() {
   // Simple console logging for bootstrap
@@ -11,6 +12,17 @@ async function bootstrap() {
   
   try {
     log('🚀 Sherlock Ω IDE starting...');
+    
+    // Initialize process management
+    processManager.startMemoryMonitoring();
+    log('🛡️  Process management initialized');
+    
+    // Kill any processes on our ports
+    await processManager.killProcessOnPort(3000);
+    await processManager.killProcessOnPort(3001);
+    await processManager.killProcessOnPort(3002);
+    await processManager.killProcessOnPort(3003);
+    await processManager.killProcessOnPort(3005);
     
     // Enable autonomous evolution for Cycle 5
     process.env.EVOLUTION_MODE = 'auto';
@@ -24,11 +36,25 @@ async function bootstrap() {
     log('✨ Sherlock Ω IDE ready for development');
     log('🔥 CYCLE 5 EVOLUTION IDE: http://localhost:3005');
     
-    // Keep the process alive
-    process.on('SIGINT', () => {
-      log('👋 Sherlock Ω IDE shutting down gracefully');
-      process.exit(0);
+    // Register cleanup handlers
+    processManager.registerCleanupHandler(async () => {
+      log('🧹 Cleaning up web servers...');
+      const enhancedIDE = (global as any).sherlockWebServer;
+      const beastIDE = (global as any).sherlockBeastServer;
+      const orchestrator = (global as any).sherlockOrchestrator;
+      
+      if (enhancedIDE && typeof enhancedIDE.stop === 'function') {
+        await enhancedIDE.stop();
+      }
+      if (beastIDE && typeof beastIDE.stop === 'function') {
+        await beastIDE.stop();
+      }
+      if (orchestrator && typeof orchestrator.shutdown === 'function') {
+        await orchestrator.shutdown();
+      }
     });
+    
+    log('✅ Process cleanup handlers registered');
     
   } catch (error) {
     console.error('💥 Bootstrap failed:', error);

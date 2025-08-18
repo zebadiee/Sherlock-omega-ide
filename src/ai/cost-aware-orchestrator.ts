@@ -8,7 +8,7 @@ import { Logger } from '../logging/logger';
 import { PlatformType } from '../core/whispering-interfaces';
 
 export class CostAwareAIOrchestrator {
-  private logger: Logger;
+  protected logger: Logger;
   private providerCosts: Map<string, ProviderCostInfo> = new Map();
   private requestHistory: AIRequestRecord[] = [];
 

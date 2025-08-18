@@ -14,6 +14,8 @@ Sherlock Omega IDE is a **flagship open-source IDE platform** that combines the 
 ### ✨ **Key Features**
 
 - 🧠 **Intelligent Code Analysis** - AI-powered insights and suggestions
+- ⚛️ **Quantum Computing Integration** - Natural language to quantum circuits
+- 🤖 **AI Bot Catalog & Builder** - Create and share intelligent automation bots
 - 🔌 **Extensible Plugin System** - Build and share custom extensions
 - 📊 **Performance Monitoring** - Real-time metrics and optimization
 - 🛡️ **Enterprise Security** - Sandboxed plugins and secure execution
@@ -21,6 +23,8 @@ Sherlock Omega IDE is a **flagship open-source IDE platform** that combines the 
 - 📝 **Advanced Logging** - Structured logging with multiple transports
 - ⚡ **High Performance** - Optimized for large codebases
 - 🎨 **Professional UI** - Monaco Editor integration with themes
+- 🎓 **Educational Tools** - Interactive quantum tutorials and visualizations
+- 🔬 **FOSS Community** - MIT licensed with community bot sharing
 
 ## 🏗️ **Architecture**
 
@@ -50,6 +54,7 @@ Sherlock Omega IDE
 - Node.js 18+ 
 - npm 9+
 - TypeScript 5.0+
+- Python 3.8+ (optional, for cloud quantum features)
 
 ### **Installation**
 
@@ -61,14 +66,39 @@ cd Sherlock-omega-ide
 # Install dependencies
 npm install
 
+# Install quantum computing libraries
+npm run quantum:install
+
 # Build the project
 npm run build
 
-# Run tests
+# Run tests (including quantum tests)
 npm test
+
+# Test quantum features
+npm run quantum:test
 
 # Start development server
 npm run dev
+```
+
+### **⚛️ Quantum Quick Start**
+
+```bash
+# Create your first quantum bot
+npm run bot create "Bell state quantum bot" --quantum
+
+# Run quantum circuit simulation
+npm run bot quantum simulate "2 qubit entanglement with Hadamard and CNOT"
+
+# Generate Grover's search algorithm
+npm run bot quantum algorithm grover --qubits 4
+
+# Create quantum tutorial
+npm run bot quantum tutorial "quantum basics" --level beginner
+
+# Run complete quantum IDE demo
+npm run demo:ide-quantum
 ```
 
 ### **Basic Usage**

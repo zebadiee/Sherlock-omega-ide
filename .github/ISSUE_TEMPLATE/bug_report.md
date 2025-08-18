@@ -38,9 +38,16 @@ A clear and concise description of what actually happened.
 
 Add any other context about the problem here, such as:
 - Screenshots or screen recordings
-- Console errors or logs
 - Performance impact
 - Related issues or pull requests
+
+## 📜 **Logs and Console Output**
+
+Please paste any relevant logs or console output below, wrapped in a code block. This is crucial for debugging.
+
+```log
+(paste logs here)
+```
 
 ## 🔧 **Possible Solution**
 

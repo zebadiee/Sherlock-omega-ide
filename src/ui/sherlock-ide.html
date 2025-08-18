@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherlock Ω IDE - Autonomous Development Environment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <style>
+        .file-tree-item:hover { background-color: rgba(75, 85, 99, 0.5); }
+        .file-tree-item.active { background-color: rgba(59, 130, 246, 0.3); }
+        .autonomous-indicator { animation: pulse 2s infinite; }
+        .typing-animation { 
+            border-right: 2px solid #3B82F6;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { border-color: #3B82F6; }
+            51%, 100% { border-color: transparent; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white h-screen overflow-hidden">
+    <!-- Main IDE Layout -->
+    <div class="flex flex-col h-screen">
+        
+        <!-- Top Menu Bar -->
+        <div class="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-5 h-5 text-blue-400"></i>
+                    <span class="font-bold text-lg">Sherlock Ω IDE</span>
+                </div>
+                <div class="text-sm text-gray-400">Autonomous Development Environment</div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div id="autonomous-status" class="flex items-center space-x-2 text-green-400 autonomous-indicator">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                    <span class="text-sm">Autonomous Mode: ON</span>
+                </div>
+                <button id="toggle-autonomous" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">
+                    Toggle Autonomous
+                </button>
+            </div>
+        </div>
+
+        <!-- Main IDE Content -->
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar - File Explorer -->
+            <div class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+                <div class="p-3 border-b border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-semibold text-sm">EXPLORER</h3>
+                        <button id="new-file-btn" class="text-gray-400 hover:text-white">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="file-tree" class="flex-1 overflow-y-auto p-2">
+                    <!-- File tree will be populated here -->
+                </div>
+                
+                <!-- Autonomous Actions Panel -->
+                <div class="border-t border-gray-700 p-3">
+                    <h4 class="text-xs font-semibold text-gray-400 mb-2">AUTONOMOUS ACTIONS</h4>
+                    <div class="space-y-2">
+                        <button id="auto-generate-btn" class="w-full bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-xs">
+                            Generate Code
+                        </button>
+                        <button id="auto-fix-btn" class="w-full bg-yellow-600 hover:bg-yellow-700 px-2 py-1 rounded text-xs">
+                            Auto Fix Issues
+                        </button>
+                        <button id="auto-test-btn" class="w-full bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-xs">
+                            Generate Tests
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Editor Area -->
+            <div class="flex-1 flex flex-col">
+                
+                <!-- Tab Bar -->
+                <div id="tab-bar" class="bg-gray-800 border-b border-gray-700 flex items-center px-2 min-h-[40px]">
+                    <!-- Tabs will be added here -->
+                </div>
+
+                <!-- Editor Container -->
+                <div class="flex-1 relative">
+                    <div id="editor-container" class="w-full h-full"></div>
+                    
+                    <!-- Autonomous Coding Overlay -->
+                    <div id="autonomous-overlay" class="absolute inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+                        <div class="bg-gray-800 rounded-lg p-6 max-w-md">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="animate-spin">
+                                    <i data-lucide="cpu" class="w-6 h-6 text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold">Autonomous Coding in Progress</h3>
+                                    <p id="autonomous-status-text" class="text-sm text-gray-400">Analyzing requirements...</p>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div id="autonomous-progress" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar - AI Assistant -->
+            <div class="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
+                
+                <!-- AI Chat Header -->
+                <div class="p-3 border-b border-gray-700">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="brain" class="w-5 h-5 text-purple-400"></i>
+                        <h3 class="font-semibold">AI Assistant</h3>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-3">
+                    <div class="bg-gray-700 rounded-lg p-3">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <i data-lucide="shield" class="w-4 h-4 text-blue-400"></i>
+                            <span class="text-sm font-semibold">Sherlock Ω</span>
+                        </div>
+                        <p class="text-sm">Hello! I'm your autonomous development assistant. I can:</p>
+                        <ul class="text-xs text-gray-300 mt-2 space-y-1">
+                            <li>• Generate code automatically</li>
+                            <li>• Fix bugs and issues</li>
+                            <li>• Create comprehensive tests</li>
+                            <li>• Refactor and optimize code</li>
+                        </ul>
+                        <p class="text-sm mt-2">Just describe what you want to build, and I'll create it for you!</p>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="border-t border-gray-700 p-3">
+                    <div class="flex space-x-2">
+                        <input 
+                            id="chat-input" 
+                            type="text" 
+                            placeholder="Describe what you want to build..."
+                            class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                        >
+                        <button id="send-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-2 mt-2">
+                        <input type="checkbox" id="auto-implement" checked class="rounded">
+                        <label for="auto-implement" class="text-xs text-gray-400">Auto-implement suggestions</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Status Bar -->
+        <div class="bg-gray-800 border-t border-gray-700 px-4 py-2 flex items-center justify-between text-sm">
+            <div class="flex items-center space-x-4">
+                <span id="current-file">No file selected</span>
+                <span class="text-gray-400">|</span>
+                <span id="cursor-position">Ln 1, Col 1</span>
+                <span class="text-gray-400">|</span>
+                <span id="file-encoding">UTF-8</span>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div id="safety-status" class="flex items-center space-x-1 text-green-400">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Safety: Active</span>
+                </div>
+                <div id="autonomous-activity" class="flex items-center space-x-1 text-blue-400">
+                    <i data-lucide="activity" class="w-4 h-4"></i>
+                    <span>Ready</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // IDE State
+        let editor = null;
+        let currentFile = null;
+        let files = {};
+        let isAutonomousMode = true;
+        let autonomousQueue = [];
+
+        // Initialize Monaco Editor
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('editor-container'), {
+                value: '// Welcome to Sherlock Ω IDE\n// Start by describing what you want to build in the AI Assistant\n\n',
+                language: 'javascript',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                fontSize: 14,
+                minimap: { enabled: true },
+                scrollBeyondLastLine: false
+            });
+
+            // Listen for editor changes
+            editor.onDidChangeModelContent(() => {
+                updateStatusBar();
+                if (currentFile && files[currentFile]) {
+                    files[currentFile].content = editor.getValue();
+                }
+            });
+
+            // Listen for cursor position changes
+            editor.onDidChangeCursorPosition((e) => {
+                document.getElementById('cursor-position').textContent = 
+                    `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
+            });
+        });
+
+        // Initialize file system
+        function initializeFileSystem() {
+            files = {
+                'README.md': {
+                    content: '# My Autonomous Project\n\nThis project was created with Sherlock Ω IDE.\n\n## Features\n\n- Autonomous code generation\n- AI-powered development\n- Safety validation\n\n## Getting Started\n\nDescribe what you want to build in the AI Assistant!',
+                    language: 'markdown'
+                },
+                'package.json': {
+                    content: '{\n  "name": "autonomous-project",\n  "version": "1.0.0",\n  "description": "Created with Sherlock Ω IDE",\n  "main": "index.js",\n  "scripts": {\n    "start": "node index.js",\n    "test": "jest"\n  },\n  "dependencies": {},\n  "devDependencies": {\n    "jest": "^29.0.0"\n  }\n}',
+                    language: 'json'
+                }
+            };
+            renderFileTree();
+        }
+
+        // Render file tree
+        function renderFileTree() {
+            const fileTree = document.getElementById('file-tree');
+            fileTree.innerHTML = '';
+
+            Object.keys(files).forEach(filename => {
+                const fileItem = document.createElement('div');
+                fileItem.className = `file-tree-item cursor-pointer px-2 py-1 rounded text-sm flex items-center space-x-2 ${currentFile === filename ? 'active' : ''}`;
+                
+                const icon = getFileIcon(filename);
+                fileItem.innerHTML = `
+                    <i data-lucide="${icon}" class="w-4 h-4"></i>
+                    <span>${filename}</span>
+                `;
+                
+                fileItem.addEventListener('click', () => openFile(filename));
+                fileTree.appendChild(fileItem);
+            });
+
+            lucide.createIcons();
+        }
+
+        // Get file icon based on extension
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                'js': 'file-code',
+                'ts': 'file-code',
+                'html': 'file-code',
+                'css': 'file-code',
+                'json': 'braces',
+                'md': 'file-text',
+                'txt': 'file-text'
+            };
+            return iconMap[ext] || 'file';
+        }
+
+        // Open file in editor
+        function openFile(filename) {
+            if (!files[filename]) return;
+
+            currentFile = filename;
+            const file = files[filename];
+            
+            if (editor) {
+                editor.setValue(file.content);
+                monaco.editor.setModelLanguage(editor.getModel(), file.language || 'javascript');
+            }
+
+            document.getElementById('current-file').textContent = filename;
+            renderFileTree();
+            updateTabBar();
+        }
+
+        // Update tab bar
+        function updateTabBar() {
+            const tabBar = document.getElementById('tab-bar');
+            if (currentFile) {
+                tabBar.innerHTML = `
+                    <div class="flex items-center space-x-2 bg-gray-700 px-3 py-2 rounded-t">
+                        <i data-lucide="${getFileIcon(currentFile)}" class="w-4 h-4"></i>
+                        <span class="text-sm">${currentFile}</span>
+                        <button class="text-gray-400 hover:text-white ml-2">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                tabBar.innerHTML = '<div class="text-gray-400 text-sm px-3 py-2">No file open</div>';
+            }
+            lucide.createIcons();
+        }
+
+        // Update status bar
+        function updateStatusBar() {
+            // This would be called when editor content changes
+        }
+
+        // Add message to chat
+        function addChatMessage(sender, message, isUser = false) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${isUser ? 'bg-blue-600' : 'bg-gray-700'} rounded-lg p-3`;
+            
+            messageDiv.innerHTML = `
+                <div class="flex items-center space-x-2 mb-2">
+                    <i data-lucide="${isUser ? 'user' : 'shield'}" class="w-4 h-4 ${isUser ? 'text-blue-200' : 'text-blue-400'}"></i>
+                    <span class="text-sm font-semibold">${sender}</span>
+                </div>
+                <p class="text-sm">${message}</p>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            lucide.createIcons();
+        }
+
+        // Simulate autonomous code generation
+        async function generateCodeAutonomously(description) {
+            showAutonomousOverlay();
+            
+            const steps = [
+                'Analyzing requirements...',
+                'Planning code structure...',
+                'Generating implementation...',
+                'Adding safety checks...',
+                'Creating tests...',
+                'Finalizing code...'
+            ];
+
+            for (let i = 0; i < steps.length; i++) {
+                document.getElementById('autonomous-status-text').textContent = steps[i];
+                document.getElementById('autonomous-progress').style.width = `${((i + 1) / steps.length) * 100}%`;
+                await sleep(1000);
+            }
+
+            // Generate actual code based on description
+            const generatedCode = generateCodeFromDescription(description);
+            
+            // Create new file or update existing
+            const filename = getFilenameFromDescription(description);
+            files[filename] = {
+                content: generatedCode,
+                language: getLanguageFromFilename(filename)
+            };
+
+            renderFileTree();
+            openFile(filename);
+            hideAutonomousOverlay();
+
+            addChatMessage('Sherlock Ω', `I've generated ${filename} based on your description. The code includes safety checks and follows best practices.`);
+        }
+
+        // Generate code from description
+        function generateCodeFromDescription(description) {
+            const lowerDesc = description.toLowerCase();
+            
+            if (lowerDesc.includes('api') || lowerDesc.includes('server')) {
+                return generateAPICode(description);
+            } else if (lowerDesc.includes('component') || lowerDesc.includes('react')) {
+                return generateReactComponent(description);
+            } else if (lowerDesc.includes('function') || lowerDesc.includes('utility')) {
+                return generateUtilityFunction(description);
+            } else if (lowerDesc.includes('test')) {
+                return generateTestCode(description);
+            } else {
+                return generateGenericCode(description);
+            }
+        }
+
+        // Code generators
+        function generateAPICode(description) {
+            return `// ${description}
+// Generated by Sherlock Ω IDE
+
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(express.json());
+
+// Safety validation middleware
+app.use((req, res, next) => {
+    // Add safety checks here
+    console.log(\`\${new Date().toISOString()} - \${req.method} \${req.path}\`);
+    next();
+});
+
+// Routes
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'API is running',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+    });
+});
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'healthy', uptime: process.uptime() });
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+});
+
+app.listen(port, () => {
+    console.log(\`Server running on port \${port}\`);
+});
+
+module.exports = app;`;
+        }
+
+        function generateReactComponent(description) {
+            const componentName = extractComponentName(description);
+            return `// ${description}
+// Generated by Sherlock Ω IDE
+
+import React, { useState, useEffect } from 'react';
+
+const ${componentName} = () => {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        // Component initialization
+        console.log('${componentName} mounted');
+        
+        return () => {
+            // Cleanup
+            console.log('${componentName} unmounted');
+        };
+    }, []);
+
+    const handleAction = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            // Add your logic here
+            
+            setLoading(false);
+        } catch (err) {
+            setError(err.message);
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return <div className="loading">Loading...</div>;
+    }
+
+    if (error) {
+        return <div className="error">Error: {error}</div>;
+    }
+
+    return (
+        <div className="${componentName.toLowerCase()}">
+            <h2>${componentName}</h2>
+            <p>This component was generated automatically by Sherlock Ω.</p>
+            
+            <button onClick={handleAction} disabled={loading}>
+                {loading ? 'Processing...' : 'Action'}
+            </button>
+            
+            {data && (
+                <div className="data">
+                    <pre>{JSON.stringify(data, null, 2)}</pre>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ${componentName};`;
+        }
+
+        function generateUtilityFunction(description) {
+            return `// ${description}
+// Generated by Sherlock Ω IDE
+
+/**
+ * Utility function generated based on: ${description}
+ * @param {any} input - Input parameter
+ * @returns {any} - Processed result
+ */
+function processData(input) {
+    // Input validation
+    if (input === null || input === undefined) {
+        throw new Error('Input cannot be null or undefined');
+    }
+
+    try {
+        // Main processing logic
+        const result = {
+            input: input,
+            processed: true,
+            timestamp: new Date().toISOString(),
+            // Add your processing logic here
+        };
+
+        return result;
+    } catch (error) {
+        console.error('Processing error:', error);
+        throw new Error(\`Failed to process data: \${error.message}\`);
+    }
+}
+
+/**
+ * Helper function for validation
+ * @param {any} value - Value to validate
+ * @returns {boolean} - Validation result
+ */
+function isValid(value) {
+    return value !== null && value !== undefined && value !== '';
+}
+
+// Export functions
+module.exports = {
+    processData,
+    isValid
+};`;
+        }
+
+        function generateTestCode(description) {
+            return `// ${description}
+// Generated by Sherlock Ω IDE
+
+const { processData, isValid } = require('./utils');
+
+describe('Generated Tests', () => {
+    beforeEach(() => {
+        // Setup before each test
+    });
+
+    afterEach(() => {
+        // Cleanup after each test
+    });
+
+    describe('processData', () => {
+        it('should process valid input correctly', () => {
+            const input = { test: 'data' };
+            const result = processData(input);
+            
+            expect(result).toBeDefined();
+            expect(result.input).toEqual(input);
+            expect(result.processed).toBe(true);
+            expect(result.timestamp).toBeDefined();
+        });
+
+        it('should throw error for null input', () => {
+            expect(() => processData(null)).toThrow('Input cannot be null or undefined');
+        });
+
+        it('should throw error for undefined input', () => {
+            expect(() => processData(undefined)).toThrow('Input cannot be null or undefined');
+        });
+    });
+
+    describe('isValid', () => {
+        it('should return true for valid values', () => {
+            expect(isValid('test')).toBe(true);
+            expect(isValid(123)).toBe(true);
+            expect(isValid({})).toBe(true);
+            expect(isValid([])).toBe(true);
+        });
+
+        it('should return false for invalid values', () => {
+            expect(isValid(null)).toBe(false);
+            expect(isValid(undefined)).toBe(false);
+            expect(isValid('')).toBe(false);
+        });
+    });
+});`;
+        }
+
+        function generateGenericCode(description) {
+            return `// ${description}
+// Generated by Sherlock Ω IDE
+
+class AutoGeneratedClass {
+    constructor(options = {}) {
+        this.options = {
+            debug: false,
+            timeout: 5000,
+            ...options
+        };
+        
+        this.initialized = false;
+        this.data = new Map();
+        
+        this.init();
+    }
+
+    async init() {
+        try {
+            if (this.options.debug) {
+                console.log('Initializing AutoGeneratedClass...');
+            }
+            
+            // Initialization logic here
+            
+            this.initialized = true;
+            
+            if (this.options.debug) {
+                console.log('AutoGeneratedClass initialized successfully');
+            }
+        } catch (error) {
+            console.error('Initialization failed:', error);
+            throw error;
+        }
+    }
+
+    async process(input) {
+        if (!this.initialized) {
+            throw new Error('Class not initialized');
+        }
+
+        try {
+            // Validate input
+            if (!this.validate(input)) {
+                throw new Error('Invalid input provided');
+            }
+
+            // Process the input
+            const result = await this.performProcessing(input);
+            
+            // Store result
+            this.data.set(Date.now(), result);
+            
+            return result;
+        } catch (error) {
+            if (this.options.debug) {
+                console.error('Processing error:', error);
+            }
+            throw error;
+        }
+    }
+
+    validate(input) {
+        return input !== null && input !== undefined;
+    }
+
+    async performProcessing(input) {
+        // Main processing logic
+        return {
+            input: input,
+            processed: true,
+            timestamp: new Date().toISOString(),
+            id: Math.random().toString(36).substr(2, 9)
+        };
+    }
+
+    getData() {
+        return Array.from(this.data.values());
+    }
+
+    clear() {
+        this.data.clear();
+    }
+}
+
+module.exports = AutoGeneratedClass;`;
+        }
+
+        // Helper functions
+        function extractComponentName(description) {
+            const words = description.split(' ');
+            for (let word of words) {
+                if (word.length > 3 && !['component', 'create', 'build', 'make'].includes(word.toLowerCase())) {
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() + 'Component';
+                }
+            }
+            return 'GeneratedComponent';
+        }
+
+        function getFilenameFromDescription(description) {
+            const lowerDesc = description.toLowerCase();
+            
+            if (lowerDesc.includes('test')) return 'generated.test.js';
+            if (lowerDesc.includes('api') || lowerDesc.includes('server')) return 'server.js';
+            if (lowerDesc.includes('component') || lowerDesc.includes('react')) return 'Component.jsx';
+            if (lowerDesc.includes('utility') || lowerDesc.includes('function')) return 'utils.js';
+            
+            return 'generated.js';
+        }
+
+        function getLanguageFromFilename(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const langMap = {
+                'js': 'javascript',
+                'jsx': 'javascript',
+                'ts': 'typescript',
+                'tsx': 'typescript',
+                'html': 'html',
+                'css': 'css',
+                'json': 'json',
+                'md': 'markdown'
+            };
+            return langMap[ext] || 'javascript';
+        }
+
+        function showAutonomousOverlay() {
+            document.getElementById('autonomous-overlay').classList.remove('hidden');
+            document.getElementById('autonomous-overlay').classList.add('flex');
+        }
+
+        function hideAutonomousOverlay() {
+            document.getElementById('autonomous-overlay').classList.add('hidden');
+            document.getElementById('autonomous-overlay').classList.remove('flex');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Smart AI response system
+        function shouldGenerateCode(message) {
+            const codeKeywords = [
+                'create', 'build', 'make', 'generate', 'write', 'implement', 'add',
+                'function', 'component', 'class', 'api', 'server', 'app', 'website',
+                'code', 'script', 'program', 'module', 'library', 'framework',
+                'database', 'form', 'button', 'login', 'auth', 'test', 'unit test'
+            ];
+            
+            const questionKeywords = [
+                'what', 'how', 'why', 'when', 'where', 'who', 'which',
+                'explain', 'tell me', 'describe', 'help', 'can you',
+                '?', 'question', 'understand', 'know', 'learn'
+            ];
+            
+            const lowerMessage = message.toLowerCase();
+            
+            // If it's clearly a question, don't generate code
+            if (questionKeywords.some(keyword => lowerMessage.includes(keyword))) {
+                return false;
+            }
+            
+            // If it contains code-related keywords, generate code
+            return codeKeywords.some(keyword => lowerMessage.includes(keyword));
+        }
+
+        function getConversationalResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+                return "Hello! I'm Sherlock Ω, your autonomous development assistant. I can help you build applications, answer questions about code, or just chat about development. What would you like to know?";
+            }
+            
+            if (lowerMessage.includes('what') && lowerMessage.includes('do')) {
+                return "I can help you in several ways:\n• Generate complete applications and components\n• Answer questions about programming\n• Explain code concepts\n• Debug and fix issues\n• Create tests and documentation\n\nJust tell me what you need!";
+            }
+            
+            if (lowerMessage.includes('how') && lowerMessage.includes('work')) {
+                return "I work by understanding your natural language requests and either:\n• Generating code if you want something built\n• Providing explanations if you have questions\n• Having conversations about development topics\n\nI use advanced AI to understand context and generate safe, tested code.";
+            }
+            
+            if (lowerMessage.includes('capabilities') || lowerMessage.includes('can you')) {
+                return "I can:\n• Build full-stack applications (React, Node.js, APIs)\n• Create components, functions, and utilities\n• Generate comprehensive tests\n• Explain programming concepts\n• Debug and optimize code\n• Answer questions about best practices\n\nWhat specific help do you need?";
+            }
+            
+            if (lowerMessage.includes('thank')) {
+                return "You're welcome! I'm here whenever you need help with development. Feel free to ask me anything!";
+            }
+            
+            // Default conversational response
+            return `I understand you're asking about: "${message}". I'm here to help with both coding tasks and answering questions. If you'd like me to build something, just describe what you want created. If you have questions, I'm happy to explain!`;
+        }
+
+        // Event listeners
+        document.getElementById('send-btn').addEventListener('click', async () => {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addChatMessage('You', message, true);
+            input.value = '';
+
+            // Smart response logic
+            if (shouldGenerateCode(message)) {
+                if (isAutonomousMode && document.getElementById('auto-implement').checked) {
+                    addChatMessage('Sherlock Ω', 'I\'ll generate that code for you right away!');
+                    await generateCodeAutonomously(message);
+                } else {
+                    addChatMessage('Sherlock Ω', 'I can build that for you! Enable "Auto-implement suggestions" and autonomous mode to have me create the code automatically.');
+                }
+            } else {
+                // Just have a conversation
+                const response = getConversationalResponse(message);
+                addChatMessage('Sherlock Ω', response);
+            }
+        });
+
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('send-btn').click();
+            }
+        });
+
+        document.getElementById('toggle-autonomous').addEventListener('click', () => {
+            isAutonomousMode = !isAutonomousMode;
+            const status = document.getElementById('autonomous-status');
+            const activity = document.getElementById('autonomous-activity');
+            
+            if (isAutonomousMode) {
+                status.innerHTML = '<i data-lucide="cpu" class="w-4 h-4"></i><span class="text-sm">Autonomous Mode: ON</span>';
+                status.className = 'flex items-center space-x-2 text-green-400 autonomous-indicator';
+                activity.innerHTML = '<i data-lucide="activity" class="w-4 h-4"></i><span>Ready</span>';
+            } else {
+                status.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i><span class="text-sm">Autonomous Mode: OFF</span>';
+                status.className = 'flex items-center space-x-2 text-gray-400';
+                activity.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i><span>Manual</span>';
+            }
+            lucide.createIcons();
+        });
+
+        document.getElementById('auto-generate-btn').addEventListener('click', async () => {
+            const description = prompt('What would you like me to generate?');
+            if (description) {
+                await generateCodeAutonomously(description);
+            }
+        });
+
+        document.getElementById('new-file-btn').addEventListener('click', () => {
+            const filename = prompt('Enter filename:');
+            if (filename && !files[filename]) {
+                files[filename] = {
+                    content: `// ${filename}\n// Created with Sherlock Ω IDE\n\n`,
+                    language: getLanguageFromFilename(filename)
+                };
+                renderFileTree();
+                openFile(filename);
+            }
+        });
+
+        // Initialize IDE
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initializeFileSystem();
+            openFile('README.md');
+            
+            // Welcome message
+            setTimeout(() => {
+                addChatMessage('Sherlock Ω', 'Welcome to Sherlock Ω IDE! I can help you in two ways:\n\n🤖 **Build Code**: Say things like "Create a REST API" or "Build a login component"\n💬 **Answer Questions**: Ask me "What can you do?" or "How does React work?"\n\nWhat would you like to start with?');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

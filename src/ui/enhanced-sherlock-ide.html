@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherlock Ω IDE - Enhanced with AI Bot Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .ide-container {
+            display: grid;
+            grid-template-areas: 
+                "header header header"
+                "sidebar editor panel"
+                "footer footer footer";
+            grid-template-rows: 60px 1fr 30px;
+            grid-template-columns: 300px 1fr 350px;
+            height: 100vh;
+            gap: 1px;
+            background: #0f0f0f;
+        }
+
+        /* Header */
+        .header {
+            grid-area: header;
+            background: linear-gradient(90deg, #1a1a2e, #16213e);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 2px solid #00d4ff;
+            box-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-right: 30px;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .nav-item {
+            padding: 8px 16px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #e0e0e0;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            grid-area: sidebar;
+            background: #1a1a2e;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            border-bottom: 1px solid #333;
+        }
+
+        .section-header {
+            padding: 15px;
+            background: #16213e;
+            font-weight: bold;
+            color: #00d4ff;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-content {
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .section-content.collapsed {
+            display: none;
+        }
+
+        /* Bot Builder Panel */
+        .bot-builder-panel {
+            background: #1a1a2e;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px;
+            border: 1px solid #333;
+        }
+
+        .bot-builder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .bot-builder-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .create-bot-btn {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .create-bot-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Bot List */
+        .bot-item {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bot-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: #00d4ff;
+        }
+
+        .bot-name {
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 4px;
+        }
+
+        .bot-description {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .bot-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .bot-status.active {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .bot-status.inactive {
+            background: #666;
+            color: #fff;
+        }
+
+        .bot-status.error {
+            background: #ff4444;
+            color: #fff;
+        }
+
+        /* Editor Area */
+        .editor {
+            grid-area: editor;
+            background: #0f0f0f;
+            position: relative;
+        }
+
+        .editor-tabs {
+            background: #1a1a2e;
+            display: flex;
+            border-bottom: 1px solid #333;
+            overflow-x: auto;
+        }
+
+        .editor-tab {
+            padding: 12px 20px;
+            background: #16213e;
+            border-right: 1px solid #333;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .editor-tab.active {
+            background: #0f0f0f;
+            color: #00d4ff;
+        }
+
+        .editor-tab:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .editor-content {
+            height: calc(100% - 45px);
+            background: #0f0f0f;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 20px;
+            overflow: auto;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            grid-area: panel;
+            background: #1a1a2e;
+            border-left: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        /* Bot Builder Wizard */
+        .bot-wizard {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 1000;
+        }
+
+        .bot-wizard.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wizard-container {
+            background: #1a1a2e;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90%;
+            overflow: hidden;
+            border: 2px solid #00d4ff;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .wizard-header {
+            background: linear-gradient(90deg, #00d4ff, #0099cc);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wizard-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .wizard-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .wizard-progress {
+            background: #16213e;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-steps {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .progress-step {
+            flex: 1;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.completed {
+            background: #00d4ff;
+        }
+
+        .progress-step.active {
+            background: linear-gradient(90deg, #00d4ff, #333);
+        }
+
+        .wizard-content {
+            padding: 30px;
+            min-height: 400px;
+            overflow-y: auto;
+        }
+
+        .wizard-footer {
+            background: #16213e;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #333;
+        }
+
+        .wizard-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .wizard-btn.primary {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+        }
+
+        .wizard-btn.secondary {
+            background: #333;
+            color: #e0e0e0;
+        }
+
+        .wizard-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .wizard-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .capability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .capability-card {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .capability-card:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: #00d4ff;
+        }
+
+        .capability-card.selected {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+        }
+
+        .capability-name {
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .capability-description {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* Footer */
+        .footer {
+            grid-area: footer;
+            background: #16213e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-top: 1px solid #333;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 2s infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .ide-container {
+                grid-template-columns: 250px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .ide-container {
+                grid-template-areas: 
+                    "header"
+                    "editor"
+                    "footer";
+                grid-template-columns: 1fr;
+                grid-template-rows: 60px 1fr 30px;
+            }
+            
+            .sidebar, .right-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ide-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">Sherlock Ω</div>
+            <nav class="header-nav">
+                <div class="nav-item active" data-view="editor">Editor</div>
+                <div class="nav-item" data-view="bots">AI Bots</div>
+                <div class="nav-item" data-view="plugins">Plugins</div>
+                <div class="nav-item" data-view="monitoring">Monitoring</div>
+                <div class="nav-item" onclick="openDevOpsChat()">🤖 DevOps Chat</div>
+                <div class="nav-item" data-view="settings">Settings</div>
+            </nav>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('file-explorer')">
+                    <span>📁 File Explorer</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="file-explorer">
+                    <div style="padding: 10px; color: #aaa;">
+                        📄 index.ts<br>
+                        📄 bot-builder.ts<br>
+                        📄 plugin-system.ts<br>
+                        📁 bots/<br>
+                        &nbsp;&nbsp;📄 code-generator.ts<br>
+                        &nbsp;&nbsp;📄 test-assistant.ts<br>
+                        📁 plugins/<br>
+                        &nbsp;&nbsp;📄 monaco-editor.ts
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('active-bots')">
+                    <span>🤖 Active Bots</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="active-bots">
+                    <div class="bot-item" onclick="selectBot('code-gen')">
+                        <div class="bot-name">Code Generator</div>
+                        <div class="bot-description">Generates code from natural language</div>
+                        <span class="bot-status active">Active</span>
+                    </div>
+                    <div class="bot-item" onclick="selectBot('test-gen')">
+                        <div class="bot-name">Test Generator</div>
+                        <div class="bot-description">Creates comprehensive unit tests</div>
+                        <span class="bot-status active">Active</span>
+                    </div>
+                    <div class="bot-item" onclick="selectBot('doc-bot')">
+                        <div class="bot-name">Documentation Bot</div>
+                        <div class="bot-description">Generates and maintains documentation</div>
+                        <span class="bot-status inactive">Inactive</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('quick-actions')">
+                    <span>⚡ Quick Actions</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="quick-actions">
+                    <button class="create-bot-btn" onclick="openBotBuilder()" style="width: 100%; margin-bottom: 10px;">
+                        ➕ Create New Bot
+                    </button>
+                    <button class="create-bot-btn" onclick="importPlugin()" style="width: 100%; background: #666;">
+                        📦 Import Plugin
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Editor -->
+        <main class="editor">
+            <div class="editor-tabs">
+                <div class="editor-tab active">bot-builder.ts</div>
+                <div class="editor-tab">plugin-system.ts</div>
+                <div class="editor-tab">+ New File</div>
+            </div>
+            <div class="editor-content">
+                <div style="color: #00d4ff; margin-bottom: 20px;">
+                    // Sherlock Ω IDE - AI Bot Builder Integration
+                    // Enhanced with autonomous bot creation and plugin system
+                </div>
+                <div style="color: #888; margin-bottom: 10px;">
+                    import { AIBotBuilder } from './ui/ai-bot-builder';
+                </div>
+                <div style="color: #888; margin-bottom: 10px;">
+                    import { EnhancedPluginSystem } from './core/enhanced-plugin-system';
+                </div>
+                <div style="color: #888; margin-bottom: 20px;">
+                    import { SherlockOmegaSystem } from './core/sherlock-omega-system';
+                </div>
+                
+                <div style="color: #ff6b6b; margin-bottom: 10px;">
+                    class EnhancedSherlockIDE {
+                </div>
+                <div style="margin-left: 20px; color: #4ecdc4;">
+                    private pluginSystem: EnhancedPluginSystem;<br>
+                    private botBuilder: AIBotBuilder;<br>
+                    private activeBots = new Map&lt;string, AIBot&gt;();
+                </div>
+                <div style="margin-top: 20px; color: #ffe66d;">
+                    // Real-time bot creation and management<br>
+                    // Streaming AI responses for better UX<br>
+                    // Plugin marketplace integration<br>
+                    // Performance monitoring and optimization
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Panel -->
+        <aside class="right-panel">
+            <div class="bot-builder-panel">
+                <div class="bot-builder-header">
+                    <div class="bot-builder-title">Bot Builder</div>
+                    <button class="create-bot-btn" onclick="openBotBuilder()">Create Bot</button>
+                </div>
+                <div style="color: #aaa; margin-bottom: 15px;">
+                    Build custom AI assistants for your workflow
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Quick Templates</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button class="wizard-btn secondary" onclick="applyTemplate('code-assistant')" style="width: 100%;">
+                            Code Assistant
+                        </button>
+                        <button class="wizard-btn secondary" onclick="applyTemplate('test-generator')" style="width: 100%;">
+                            Test Generator
+                        </button>
+                        <button class="wizard-btn secondary" onclick="applyTemplate('doc-bot')" style="width: 100%;">
+                            Documentation Bot
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('bot-performance')">
+                    <span>📊 Bot Performance</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="bot-performance">
+                    <div style="padding: 10px;">
+                        <div style="margin-bottom: 10px;">
+                            <strong style="color: #00d4ff;">Code Generator</strong><br>
+                            <small style="color: #aaa;">Requests: 142 | Success: 98.5%</small>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <strong style="color: #00d4ff;">Test Generator</strong><br>
+                            <small style="color: #aaa;">Requests: 89 | Success: 96.2%</small>
+                        </div>
+                        <div>
+                            <strong style="color: #666;">Documentation Bot</strong><br>
+                            <small style="color: #aaa;">Inactive</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('compilation-status')">
+                    <span>🔧 Compilation Status</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="compilation-status">
+                    <div style="padding: 10px;">
+                        <div style="margin-bottom: 10px;">
+                            <strong style="color: #00d4ff;">Active Pipelines</strong><br>
+                            <small style="color: #aaa;" id="active-pipelines">0 running</small>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <strong style="color: #00d4ff;">Success Rate</strong><br>
+                            <small style="color: #aaa;" id="compilation-success-rate">98.7%</small>
+                        </div>
+                        <button class="wizard-btn secondary" onclick="viewCompilationStats()" style="width: 100%; margin-top: 10px;">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('system-health')">
+                    <span>💚 System Health</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="system-health">
+                    <div style="padding: 10px; color: #00ff88;">
+                        ✅ All systems operational<br>
+                        ✅ Self-healing active<br>
+                        ✅ Self-compilation ready<br>
+                        ✅ 95.2% test coverage<br>
+                        ✅ Zero critical issues
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div>Sherlock Ω IDE v1.0.0 - Self-Healing Development Environment</div>
+            <div>🟢 Connected | 🤖 3 Active Bots | 📊 95.2% Coverage</div>
+        </footer>
+    </div>
+
+    <!-- Bot Builder Wizard -->
+    <div class="bot-wizard" id="bot-wizard">
+        <div class="wizard-container">
+            <div class="wizard-header">
+                <div class="wizard-title">AI Bot Builder</div>
+                <button class="wizard-close" onclick="closeBotBuilder()">×</button>
+            </div>
+            
+            <div class="wizard-progress">
+                <div class="progress-steps">
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step active"></div>
+                    <div class="progress-step"></div>
+                    <div class="progress-step"></div>
+                    <div class="progress-step"></div>
+                    <div class="progress-step"></div>
+                </div>
+                <div style="color: #aaa; font-size: 12px;">Step 2 of 6</div>
+            </div>
+
+            <div class="wizard-content" id="wizard-content">
+                <!-- Step 2: Basic Information -->
+                <div>
+                    <h3 style="color: #00d4ff; margin-bottom: 20px;">Basic Information</h3>
+                    <div class="form-group">
+                        <label class="form-label">Bot Name</label>
+                        <input type="text" class="form-input" placeholder="Enter bot name..." value="My Code Assistant">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-input form-textarea" placeholder="Describe what your bot does...">A helpful assistant that generates clean, well-documented code based on natural language descriptions.</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-input">
+                            <option value="code-generation">Code Generation</option>
+                            <option value="debugging">Debugging</option>
+                            <option value="testing">Testing</option>
+                            <option value="documentation">Documentation</option>
+                            <option value="analysis">Code Analysis</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wizard-footer">
+                <button class="wizard-btn secondary" onclick="previousStep()">← Previous</button>
+                <div style="color: #aaa; font-size: 12px;">Basic Information</div>
+                <button class="wizard-btn primary" onclick="nextStep()">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentWizardStep = 1;
+        let botBuilderConfig = {};
+
+        // UI Functions
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            content.classList.toggle('collapsed');
+            
+            const header = content.previousElementSibling;
+            const arrow = header.querySelector('span:last-child');
+            arrow.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+        }
+
+        function openBotBuilder() {
+            document.getElementById('bot-wizard').classList.add('active');
+            currentWizardStep = 1;
+            updateWizardProgress();
+        }
+
+        function closeBotBuilder() {
+            document.getElementById('bot-wizard').classList.remove('active');
+        }
+
+        function nextStep() {
+            if (currentWizardStep < 6) {
+                currentWizardStep++;
+                updateWizardProgress();
+                updateWizardContent();
+            }
+        }
+
+        function previousStep() {
+            if (currentWizardStep > 1) {
+                currentWizardStep--;
+                updateWizardProgress();
+                updateWizardContent();
+            }
+        }
+
+        function updateWizardProgress() {
+            const steps = document.querySelectorAll('.progress-step');
+            steps.forEach((step, index) => {
+                step.classList.remove('completed', 'active');
+                if (index < currentWizardStep - 1) {
+                    step.classList.add('completed');
+                } else if (index === currentWizardStep - 1) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        function updateWizardContent() {
+            const content = document.getElementById('wizard-content');
+            const stepTitles = [
+                'Choose Template',
+                'Basic Information', 
+                'Select Capabilities',
+                'Customize Prompts',
+                'Configuration',
+                'Review & Create'
+            ];
+
+            // Update step indicator
+            const stepIndicator = document.querySelector('.wizard-footer div');
+            stepIndicator.textContent = stepTitles[currentWizardStep - 1];
+
+            // Update content based on step
+            switch(currentWizardStep) {
+                case 1:
+                    content.innerHTML = getTemplateSelectionHTML();
+                    break;
+                case 2:
+                    content.innerHTML = getBasicInfoHTML();
+                    break;
+                case 3:
+                    content.innerHTML = getCapabilitiesHTML();
+                    break;
+                case 4:
+                    content.innerHTML = getPromptsHTML();
+                    break;
+                case 5:
+                    content.innerHTML = getConfigurationHTML();
+                    break;
+                case 6:
+                    content.innerHTML = getReviewHTML();
+                    break;
+            }
+        }
+
+        function getTemplateSelectionHTML() {
+            return `
+                <div>
+                    <h3 style="color: #00d4ff; margin-bottom: 20px;">Choose a Template</h3>
+                    <div class="capability-grid">
+                        <div class="capability-card" onclick="selectTemplate('code-assistant')">
+                            <div class="capability-name">🔧 Code Assistant</div>
+                            <div class="capability-description">Generate, explain, and refactor code</div>
+                        </div>
+                        <div class="capability-card" onclick="selectTemplate('test-generator')">
+                            <div class="capability-name">🧪 Test Generator</div>
+                            <div class="capability-description">Create comprehensive unit tests</div>
+                        </div>
+                        <div class="capability-card" onclick="selectTemplate('doc-bot')">
+                            <div class="capability-name">📚 Documentation Bot</div>
+                            <div class="capability-description">Generate and maintain documentation</div>
+                        </div>
+                        <div class="capability-card" onclick="selectTemplate('custom')">
+                            <div class="capability-name">⚡ Custom Bot</div>
+                            <div class="capability-description">Start from scratch with custom capabilities</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getBasicInfoHTML() {
+            return `
+                <div>
+                    <h3 style="color: #00d4ff; margin-bottom: 20px;">Basic Information</h3>
+                    <div class="form-group">
+                        <label class="form-label">Bot Name</label>
+                        <input type="text" class="form-input" placeholder="Enter bot name..." value="My Code Assistant">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-input form-textarea" placeholder="Describe what your bot does...">A helpful assistant that generates clean, well-documented code based on natural language descriptions.</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-input">
+                            <option value="code-generation">Code Generation</option>
+                            <option value="debugging">Debugging</option>
+                            <option value="testing">Testing</option>
+                            <option value="documentation">Documentation</option>
+                            <option value="analysis">Code Analysis</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getCapabilitiesHTML() {
+            return `
+                <div>
+                    <h3 style="color: #00d4ff; margin-bottom: 20px;">Select Capabilities</h3>
+                    <p style="color: #aaa; margin-bottom: 20px;">Choose what your bot can do:</p>
+                    <div class="capability-grid">
+                        <div class="capability-card selected" onclick="toggleCapability(this)">
+                            <div class="capability-name">Generate Function</div>
+                            <div class="capability-description">Create functions from descriptions</div>
+                        </div>
+                        <div class="capability-card" onclick="toggleCapability(this)">
+                            <div class="capability-name">Explain Code</div>
+                            <div class="capability-description">Explain code in simple terms</div>
+                        </div>
+                        <div class="capability-card selected" onclick="toggleCapability(this)">
+                            <div class="capability-name">Refactor Code</div>
+                            <div class="capability-description">Improve code structure and readability</div>
+                        </div>
+                        <div class="capability-card" onclick="toggleCapability(this)">
+                            <div class="capability-name">Generate Tests</div>
+                            <div class="capability-description">Create unit tests for functions</div>
+                        </div>
+                        <div class="capability-card" onclick="toggleCapability(this)">
+                            <div class="capability-name">Debug Code</div>
+                            <div class="capability-description">Find and fix bugs in code</div>
+                        </div>
+                        <div class="capability-card" onclick="toggleCapability(this)">
+                            <div class="capability-name">Generate Docs</div>
+                            <div class="capability-description">Create documentation for code</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getPromptsHTML() {
+            return `
+                <div>
+                    <h3 style="color: #00d4ff; margin-bottom: 20px;">Customize Prompts</h3>
+                    <p style="color: #aaa; margin-bottom: 20px;">Define how your bot communicates:</p>
+                    <div class="form-group">
+                        <label class="form-label">Generate Function Prompt</label>
+                        <textarea class="form-input form-textarea">Generate a {{language}} function that {{description}}. Follow best practices and include proper error handling.</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Refactor Code Prompt</label>
+                        <textarea class="form-input form-textarea">Refactor this {{language}} code for better readability and maintainability: {{code}}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">System Message</label>
+                        <textarea class="form-input form-textarea">You are a helpful coding assistant. Always provide clean, well-documented code with explanations.</textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getConfigurationHTML() {
+            return `
+                <div>
+                    <h3 style="color: #00d4ff; margin-bottom: 20px;">Configuration</h3>
+                    <div class="form-group">
+                        <label class="form-label">AI Model</label>
+                        <select class="form-input">
+                            <option value="gpt-4">GPT-4 (Recommended)</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Faster)</option>
+                            <option value="claude-3">Claude 3</option>
+                            <option value="local-model">Local Model</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Temperature (Creativity)</label>
+                        <input type="range" class="form-input" min="0" max="1" step="0.1" value="0.3">
+                        <small style="color: #aaa;">0.3 (Focused and consistent)</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Max Tokens</label>
+                        <input type="number" class="form-input" value="2000" min="100" max="4000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Response Timeout (seconds)</label>
+                        <input type="number" class="form-input" value="30" min="5" max="120">
+                    </div>
+                </div>
+            `;
+        }
+
+        function getReviewHTML() {
+            return `
+                <div>
+                    <h3 style="color: #00d4ff; margin-bottom: 20px;">Review & Create</h3>
+                    <div style="background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                        <h4 style="color: #00d4ff; margin-bottom: 15px;">Bot Summary</h4>
+                        <p><strong>Name:</strong> My Code Assistant</p>
+                        <p><strong>Category:</strong> Code Generation</p>
+                        <p><strong>Capabilities:</strong> Generate Function, Refactor Code</p>
+                        <p><strong>Model:</strong> GPT-4</p>
+                        <p><strong>Temperature:</strong> 0.3</p>
+                    </div>
+                    <div style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                        <p style="color: #00ff88; margin: 0;">✅ Configuration validated</p>
+                        <p style="color: #00ff88; margin: 5px 0 0 0;">✅ All dependencies available</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="create-bot-btn" onclick="createBot()" style="font-size: 16px; padding: 15px 30px;">
+                            🚀 Create Bot
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Bot Builder Functions
+        function selectTemplate(templateId) {
+            document.querySelectorAll('.capability-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.capability-card').classList.add('selected');
+            botBuilderConfig.template = templateId;
+        }
+
+        function toggleCapability(element) {
+            element.classList.toggle('selected');
+        }
+
+        function applyTemplate(templateName) {
+            console.log(`Applying template: ${templateName}`);
+            openBotBuilder();
+        }
+
+        function selectBot(botId) {
+            console.log(`Selected bot: ${botId}`);
+            // Highlight selected bot and show details
+        }
+
+        function createBot() {
+            // Simulate bot creation
+            const loadingBtn = event.target;
+            loadingBtn.textContent = '🔄 Creating Bot...';
+            loadingBtn.disabled = true;
+            
+            setTimeout(() => {
+                loadingBtn.textContent = '✅ Bot Created!';
+                setTimeout(() => {
+                    closeBotBuilder();
+                    // Add new bot to sidebar
+                    console.log('Bot created successfully!');
+                }, 1000);
+            }, 2000);
+        }
+
+        function importPlugin() {
+            console.log('Opening plugin import dialog...');
+        }
+
+        function openDevOpsChat() {
+            window.open('/devops-chat', '_blank', 'width=1200,height=800');
+        }
+
+        // Compilation and Deployment Functions
+        async function viewCompilationStats() {
+            try {
+                const response = await fetch('/api/compilation/statistics');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const stats = result.statistics;
+                    alert(`Compilation Statistics:
+Total Pipelines: ${stats.totalPipelines}
+Success Rate: ${(stats.successRate * 100).toFixed(1)}%
+Average Duration: ${(stats.averageDuration / 1000).toFixed(1)}s
+Failed Pipelines: ${stats.failedPipelines}`);
+                }
+            } catch (error) {
+                console.error('Failed to fetch compilation stats:', error);
+            }
+        }
+
+        async function deployEvolution(evolutionData) {
+            try {
+                const response = await fetch('/api/evolution/deploy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ evolution: evolutionData })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('Evolution deployed successfully:', result.pipeline);
+                    updateCompilationStatus();
+                } else {
+                    console.error('Deployment failed:', result.error);
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('Deployment error:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function updateCompilationStatus() {
+            try {
+                const [pipelinesResponse, statsResponse] = await Promise.all([
+                    fetch('/api/compilation/pipelines'),
+                    fetch('/api/compilation/statistics')
+                ]);
+                
+                const pipelinesResult = await pipelinesResponse.json();
+                const statsResult = await statsResponse.json();
+                
+                if (pipelinesResult.success) {
+                    const activePipelines = pipelinesResult.pipelines.filter(p => p.status === 'running');
+                    document.getElementById('active-pipelines').textContent = 
+                        `${activePipelines.length} running`;
+                }
+                
+                if (statsResult.success) {
+                    const successRate = (statsResult.statistics.successRate * 100).toFixed(1);
+                    document.getElementById('compilation-success-rate').textContent = `${successRate}%`;
+                }
+            } catch (error) {
+                console.error('Failed to update compilation status:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Sherlock Ω IDE Enhanced - Ready!');
+            
+            // Update compilation status periodically
+            updateCompilationStatus();
+            setInterval(updateCompilationStatus, 10000); // Update every 10 seconds
+            
+            // Simulate some activity
+            setTimeout(() => {
+                console.log('Self-healing systems online');
+                console.log('AI Bot Builder ready');
+                console.log('Plugin system initialized');
+                console.log('Self-compilation service ready');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

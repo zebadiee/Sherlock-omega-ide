@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherlock Ω Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        .pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <div id="dashboard" class="min-h-screen p-6">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="shield" class="w-8 h-8 text-blue-400"></i>
+                        <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                            SHERLOCK Ω
+                        </h1>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        Autonomous Development Environment
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div id="system-status" class="flex items-center space-x-2 text-green-500">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span class="font-medium">HEALTHY</span>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        Uptime: <span id="uptime">0s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Controls -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <button id="start-btn" class="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 px-4 py-3 rounded-lg transition-all duration-200 hover:glow">
+                <i data-lucide="play" class="w-4 h-4"></i>
+                <span>Start System</span>
+            </button>
+            
+            <button id="stop-btn" class="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 px-4 py-3 rounded-lg transition-all duration-200">
+                <i data-lucide="square" class="w-4 h-4"></i>
+                <span>Stop System</span>
+            </button>
+            
+            <button id="safe-mode-btn" class="flex items-center justify-center space-x-2 bg-yellow-600 hover:bg-yellow-700 px-4 py-3 rounded-lg transition-all duration-200">
+                <i data-lucide="shield" class="w-4 h-4"></i>
+                <span>Enter Safe Mode</span>
+            </button>
+            
+            <button class="flex items-center justify-center space-x-2 bg-gray-600 hover:bg-gray-700 px-4 py-3 rounded-lg transition-all duration-200">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+                <span>Settings</span>
+            </button>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- System Components Status -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div class="flex items-center space-x-2 mb-4">
+                    <i data-lucide="cpu" class="w-5 h-5 text-blue-400"></i>
+                    <h2 class="text-xl font-semibold">System Components</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="shield" class="w-4 h-4 text-green-400"></i>
+                            <span>Safety Validation</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-green-500">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            <span class="font-medium">ONLINE</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="git-branch" class="w-4 h-4 text-purple-400"></i>
+                            <span>Evolution Engine</span>
+                        </div>
+                        <div id="evolution-status" class="flex items-center space-x-2 text-gray-500">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                            <span class="font-medium">OFFLINE</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="brain" class="w-4 h-4 text-pink-400"></i>
+                            <span>AI Orchestrator</span>
+                        </div>
+                        <div id="ai-status" class="flex items-center space-x-2 text-gray-500">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                            <span class="font-medium">OFFLINE</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="activity" class="w-4 h-4 text-yellow-400"></i>
+                            <span>Monitoring</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-green-500">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            <span class="font-medium">ONLINE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Metrics -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div class="flex items-center space-x-2 mb-4">
+                    <i data-lucide="shield" class="w-5 h-5 text-green-400"></i>
+                    <h2 class="text-xl font-semibold">Safety Metrics</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Total Validations</span>
+                        <span id="total-validations" class="font-semibold">0</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Blocked Deployments</span>
+                        <span id="blocked-deployments" class="font-semibold text-red-400">0</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Success Rate</span>
+                        <span id="success-rate" class="font-semibold text-green-400">100.0%</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Coverage Threshold</span>
+                        <span class="font-semibold text-blue-400">95.0%</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Confidence Score</span>
+                        <span class="font-semibold text-purple-400">90.0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Overview -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div class="flex items-center space-x-2 mb-4">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5 text-yellow-400"></i>
+                    <h2 class="text-xl font-semibold">Performance</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Total Operations</span>
+                        <span id="total-operations" class="font-semibold">0</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Evolution Success</span>
+                        <span class="font-semibold text-green-400">100.0%</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Safety Success</span>
+                        <span class="font-semibold text-blue-400">100.0%</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Response Time</span>
+                        <span class="font-semibold text-purple-400">~150ms</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Memory Usage</span>
+                        <span class="font-semibold text-yellow-400">245MB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evolution Request Panel -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Request Evolution -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div class="flex items-center space-x-2 mb-4">
+                    <i data-lucide="zap" class="w-5 h-5 text-orange-400"></i>
+                    <h2 class="text-xl font-semibold">Request Evolution</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="safe-evolution" class="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 px-3 py-2 rounded text-sm transition-colors">
+                            Safe Feature
+                        </button>
+                        
+                        <button id="risky-evolution" class="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 px-3 py-2 rounded text-sm transition-colors">
+                            Risky Feature
+                        </button>
+                        
+                        <button id="complex-evolution" class="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 px-3 py-2 rounded text-sm transition-colors">
+                            Complex Feature
+                        </button>
+                        
+                        <button id="simple-evolution" class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-3 py-2 rounded text-sm transition-colors">
+                            Simple Utility
+                        </button>
+                    </div>
+                    
+                    <div id="evolution-status-message" class="text-sm text-gray-400 text-center">
+                        Start system to request evolutions
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Evolutions -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div class="flex items-center space-x-2 mb-4">
+                    <i data-lucide="eye" class="w-5 h-5 text-cyan-400"></i>
+                    <h2 class="text-xl font-semibold">Recent Evolutions</h2>
+                </div>
+                
+                <div id="evolutions-list" class="space-y-3 max-h-64 overflow-y-auto">
+                    <div class="text-gray-400 text-center py-4">
+                        No evolutions requested yet
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Dashboard state
+        let isRunning = false;
+        let isSafeMode = false;
+        let startTime = null;
+        let evolutions = [];
+        let totalValidations = 0;
+        let blockedDeployments = 0;
+
+        // DOM elements
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const safeModeBtn = document.getElementById('safe-mode-btn');
+        const systemStatus = document.getElementById('system-status');
+        const uptimeEl = document.getElementById('uptime');
+        const evolutionStatus = document.getElementById('evolution-status');
+        const aiStatus = document.getElementById('ai-status');
+        const evolutionsList = document.getElementById('evolutions-list');
+        const evolutionStatusMessage = document.getElementById('evolution-status-message');
+
+        // Update uptime
+        function updateUptime() {
+            if (startTime) {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                uptimeEl.textContent = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+            } else {
+                uptimeEl.textContent = '0s';
+            }
+        }
+
+        // Update system status
+        function updateSystemStatus() {
+            if (isSafeMode) {
+                systemStatus.innerHTML = '<i data-lucide="shield" class="w-4 h-4"></i><span class="font-medium">SAFE MODE</span>';
+                systemStatus.className = 'flex items-center space-x-2 text-blue-500';
+            } else if (isRunning) {
+                systemStatus.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i><span class="font-medium">HEALTHY</span>';
+                systemStatus.className = 'flex items-center space-x-2 text-green-500';
+            } else {
+                systemStatus.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4"></i><span class="font-medium">OFFLINE</span>';
+                systemStatus.className = 'flex items-center space-x-2 text-gray-500';
+            }
+            lucide.createIcons();
+        }
+
+        // Update component status
+        function updateComponentStatus() {
+            const status = isRunning ? 'ONLINE' : 'OFFLINE';
+            const className = isRunning ? 'flex items-center space-x-2 text-green-500' : 'flex items-center space-x-2 text-gray-500';
+            const icon = isRunning ? 'check-circle' : 'x-circle';
+
+            evolutionStatus.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i><span class="font-medium">${status}</span>`;
+            evolutionStatus.className = className;
+
+            aiStatus.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i><span class="font-medium">${status}</span>`;
+            aiStatus.className = className;
+
+            lucide.createIcons();
+        }
+
+        // Update evolution buttons
+        function updateEvolutionButtons() {
+            const buttons = ['safe-evolution', 'risky-evolution', 'complex-evolution', 'simple-evolution'];
+            buttons.forEach(id => {
+                const btn = document.getElementById(id);
+                btn.disabled = !isRunning || isSafeMode;
+            });
+
+            if (!isRunning) {
+                evolutionStatusMessage.textContent = 'Start system to request evolutions';
+            } else if (isSafeMode) {
+                evolutionStatusMessage.textContent = 'Exit safe mode to request evolutions';
+            } else {
+                evolutionStatusMessage.textContent = 'System ready for evolution requests';
+            }
+        }
+
+        // Add evolution to list
+        function addEvolution(description, priority, status = 'pending') {
+            const evolution = {
+                id: `evo-${Date.now()}`,
+                description,
+                priority,
+                status,
+                timestamp: new Date()
+            };
+
+            evolutions.unshift(evolution);
+            renderEvolutions();
+
+            // Simulate processing
+            setTimeout(() => {
+                const isUnsafe = description.includes('without tests') || 
+                                description.includes('complex') ||
+                                description.includes('risky');
+                
+                evolution.status = isUnsafe ? 'blocked' : 'approved';
+                evolution.reason = isUnsafe ? 'Safety validation failed - insufficient test coverage' : undefined;
+
+                totalValidations++;
+                if (isUnsafe) blockedDeployments++;
+
+                document.getElementById('total-validations').textContent = totalValidations;
+                document.getElementById('blocked-deployments').textContent = blockedDeployments;
+                document.getElementById('success-rate').textContent = 
+                    totalValidations > 0 ? ((totalValidations - blockedDeployments) / totalValidations * 100).toFixed(1) + '%' : '100.0%';
+                document.getElementById('total-operations').textContent = totalValidations;
+
+                renderEvolutions();
+            }, 2000);
+        }
+
+        // Render evolutions list
+        function renderEvolutions() {
+            if (evolutions.length === 0) {
+                evolutionsList.innerHTML = '<div class="text-gray-400 text-center py-4">No evolutions requested yet</div>';
+                return;
+            }
+
+            evolutionsList.innerHTML = evolutions.map(evo => {
+                const statusColor = {
+                    'pending': 'text-yellow-500',
+                    'approved': 'text-green-500',
+                    'blocked': 'text-red-500'
+                }[evo.status];
+
+                const statusIcon = {
+                    'pending': 'clock',
+                    'approved': 'check-circle',
+                    'blocked': 'x-circle'
+                }[evo.status];
+
+                return `
+                    <div class="bg-gray-700 rounded p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium">${evo.id}</span>
+                            <div class="flex items-center space-x-2 ${statusColor}">
+                                <i data-lucide="${statusIcon}" class="w-4 h-4"></i>
+                                <span class="font-medium">${evo.status.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-sm text-gray-300 mb-1">
+                            ${evo.description}
+                        </div>
+                        
+                        <div class="flex items-center justify-between text-xs text-gray-400">
+                            <span>Priority: ${evo.priority.toUpperCase()}</span>
+                            <span>${evo.timestamp.toLocaleTimeString()}</span>
+                        </div>
+                        
+                        ${evo.reason ? `<div class="text-xs text-red-400 mt-1">${evo.reason}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', () => {
+            isRunning = true;
+            startTime = Date.now();
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            updateSystemStatus();
+            updateComponentStatus();
+            updateEvolutionButtons();
+        });
+
+        stopBtn.addEventListener('click', () => {
+            isRunning = false;
+            isSafeMode = false;
+            startTime = null;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            safeModeBtn.textContent = 'Enter Safe Mode';
+            updateSystemStatus();
+            updateComponentStatus();
+            updateEvolutionButtons();
+        });
+
+        safeModeBtn.addEventListener('click', () => {
+            isSafeMode = !isSafeMode;
+            safeModeBtn.innerHTML = isSafeMode 
+                ? '<i data-lucide="shield" class="w-4 h-4"></i><span>Exit Safe Mode</span>'
+                : '<i data-lucide="shield" class="w-4 h-4"></i><span>Enter Safe Mode</span>';
+            safeModeBtn.className = isSafeMode 
+                ? 'flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded-lg transition-all duration-200'
+                : 'flex items-center justify-center space-x-2 bg-yellow-600 hover:bg-yellow-700 px-4 py-3 rounded-lg transition-all duration-200';
+            updateSystemStatus();
+            updateEvolutionButtons();
+            lucide.createIcons();
+        });
+
+        // Evolution request buttons
+        document.getElementById('safe-evolution').addEventListener('click', () => {
+            addEvolution('Add user authentication with comprehensive tests', 'medium');
+        });
+
+        document.getElementById('risky-evolution').addEventListener('click', () => {
+            addEvolution('Add payment processing without tests', 'high');
+        });
+
+        document.getElementById('complex-evolution').addEventListener('click', () => {
+            addEvolution('Implement complex machine learning algorithm', 'medium');
+        });
+
+        document.getElementById('simple-evolution').addEventListener('click', () => {
+            addEvolution('Add simple utility function with tests', 'low');
+        });
+
+        // Update uptime every second
+        setInterval(updateUptime, 1000);
+
+        // Initial state
+        stopBtn.disabled = true;
+        updateEvolutionButtons();
+    </script>
+</body>
+</html>
