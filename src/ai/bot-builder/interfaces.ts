@@ -3,6 +3,69 @@
  * Integrates with Sherlock Ω's AI capabilities for guided bot creation
  */
 
+// Missing type definitions
+export enum CapabilityType {
+  TEXT_PROCESSING = 'text-processing',
+  CODE_ANALYSIS = 'code-analysis',
+  FILE_MANIPULATION = 'file-manipulation',
+  API_INTEGRATION = 'api-integration',
+  DATA_TRANSFORMATION = 'data-transformation',
+  WORKFLOW_AUTOMATION = 'workflow-automation',
+  CHAT = 'chat'
+}
+
+export enum BotCategory {
+  CODE_GENERATION = 'code-generation',
+  DEBUGGING = 'debugging',
+  TESTING = 'testing',
+  DOCUMENTATION = 'documentation',
+  ANALYSIS = 'analysis',
+  AUTOMATION = 'automation',
+  INTEGRATION = 'integration',
+  UTILITY = 'utility',
+  CUSTOM = 'custom'
+}
+
+export interface BotTest {
+  name: string;
+  description: string;
+  input: any;
+  expectedOutput: any;
+  result: boolean;
+  timeout?: number;
+  details?: string;
+  duration?: number;
+}
+
+export enum Permission {
+  FILE_READ = 'file:read',
+  FILE_WRITE = 'file:write',
+  NETWORK_ACCESS = 'network:access',
+  SYSTEM_EXEC = 'system:exec',
+  DATABASE_READ = 'database:read',
+  DATABASE_WRITE = 'database:write'
+}
+
+export interface ResourceRequirement {
+  cpu: number;
+  memory: string;
+  storage?: string;
+}
+
+export interface BotImplementation {
+  sourceFiles: Record<string, string>;
+  dependencies: Record<string, string>;
+  configuration: BotConfiguration;
+  entryPoint: string;
+}
+
+export interface BotConfiguration {
+  name: string;
+  version: string;
+  settings: Record<string, any>;
+  permissions: Permission[];
+}
+
 export interface IBotBuilder {
   // Natural language processing
   parseDescription(description: string): Promise<BotBlueprint>;
@@ -16,6 +79,10 @@ export interface IBotBuilder {
   startInteractiveSession(): Promise<BuilderSession>;
   continueSession(sessionId: string, input: string): Promise<BuilderResponse>;
   finalizeSession(sessionId: string): Promise<GeneratedBot>;
+  
+  // Event emitter capabilities
+  on(event: string, listener: (...args: any[]) => void): this;
+  emit(event: string, ...args: any[]): boolean;
 }
 
 export interface BotBlueprint {

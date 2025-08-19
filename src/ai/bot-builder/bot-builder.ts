@@ -804,6 +804,7 @@ The bot accepts the following configuration options:
       description: `Test ${capability.description}`,
       input: { test: 'data' },
       expectedOutput: { processed: true },
+      result: false, // Will be set when test runs
       timeout: 5000
     }];
   }
@@ -814,6 +815,7 @@ The bot accepts the following configuration options:
       description: 'Test complete bot workflow',
       input: { integration: 'test' },
       expectedOutput: { success: true },
+      result: false, // Will be set when test runs
       timeout: 10000
     }];
   }
@@ -825,6 +827,7 @@ The bot accepts the following configuration options:
         description: 'Test bot behavior with empty input',
         input: {},
         expectedOutput: { success: false },
+        result: false, // Will be set when test runs
         timeout: 5000
       },
       {
@@ -832,6 +835,7 @@ The bot accepts the following configuration options:
         description: 'Test bot behavior with invalid input',
         input: null,
         expectedOutput: { success: false },
+        result: false, // Will be set when test runs
         timeout: 5000
       }
     ];

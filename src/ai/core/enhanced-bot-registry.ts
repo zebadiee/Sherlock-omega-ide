@@ -207,7 +207,7 @@ export class EnhancedBotRegistry extends EventEmitter implements IBotRegistry {
               this.logger.warn(`Bot ${bot.name} already exists, skipping import`);
             }
           } catch (error) {
-            this.logger.error(`Failed to import bot ${botExport.metadata.name}:`, error);
+            this.logger.error(`Failed to import bot ${botExport.metadata.name}:`, error as Record<string, unknown>);
           }
         }
 

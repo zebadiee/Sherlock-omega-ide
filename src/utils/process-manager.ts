@@ -49,21 +49,21 @@ export class ProcessManager {
 
     // Handle uncaught exceptions
     process.on('uncaughtException', (error) => {
-      this.logger.error('Uncaught exception:', error);
+      this.logger.error('Uncaught exception:', { message: error.message, stack: error.stack });
       this.gracefulShutdown('uncaughtException');
     });
 
     // Handle unhandled promise rejections
     process.on('unhandledRejection', (reason, promise) => {
-      this.logger.error('Unhandled promise rejection:', reason);
-      this.logger.error('Promise:', promise);
+      this.logger.error('Unhandled promise rejection:', reason as Record<string, unknown>);
+      this.logger.error('Promise:', { promise: String(promise) });
       this.gracefulShutdown('unhandledRejection');
     });
 
     // Handle memory warnings
     process.on('warning', (warning) => {
       if (warning.name === 'MaxListenersExceededWarning') {
-        this.logger.warn('Memory warning - too many listeners:', warning.message);
+        this.logger.warn('Memory warning - too many listeners:', { message: warning.message });
       }
     });
   }
@@ -94,7 +94,7 @@ export class ProcessManager {
             this.logger.debug(`Running cleanup handler ${index + 1}/${this.cleanupHandlers.length}`);
             await handler();
           } catch (error) {
-            this.logger.error(`Cleanup handler ${index + 1} failed:`, error);
+            this.logger.error(`Cleanup handler ${index + 1} failed:`, error as Record<string, unknown>);
           }
         })
       );
@@ -104,7 +104,7 @@ export class ProcessManager {
       process.exit(0);
 
     } catch (error) {
-      this.logger.error('Error during graceful shutdown:', error);
+      this.logger.error('Error during graceful shutdown:', error as Record<string, unknown>);
       process.exit(1);
     }
   }
@@ -150,14 +150,14 @@ export class ProcessManager {
         pid += data.toString();
       });
 
-      lsof.on('close', (code) => {
+      lsof.on('close', (code: number) => {
         if (code === 0 && pid.trim()) {
           const processId = pid.trim();
           this.logger.info(`Killing process ${processId} on port ${port}`);
           
           // Kill the process
           const kill = spawn('kill', ['-9', processId]);
-          kill.on('close', (killCode) => {
+          kill.on('close', (killCode: number) => {
             if (killCode === 0) {
               this.logger.info(`Successfully killed process on port ${port}`);
             } else {
@@ -168,7 +168,7 @@ export class ProcessManager {
       });
 
     } catch (error) {
-      this.logger.warn(`Failed to kill process on port ${port}:`, error);
+      this.logger.warn(`Failed to kill process on port ${port}:`, error as Record<string, unknown>);
     }
   }
 

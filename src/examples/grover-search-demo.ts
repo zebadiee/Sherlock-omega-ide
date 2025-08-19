@@ -137,35 +137,47 @@ class GroverSearchDemo {
 
   private async runRealQuantumGrover(): Promise<void> {
     try {
-      // Create a real 3-qubit Grover circuit
+      // Create a real 3-qubit Grover circuit targeting |111⟩
       const circuit = new QuantumCircuit(3);
+      const targetState = '111'; // Search target
       
       // Initialize superposition
       circuit.addGate('h', 0);
       circuit.addGate('h', 1);
       circuit.addGate('h', 2);
       
-      // Oracle: mark state |111⟩
-      circuit.addGate('ccx', [0, 1, 2]); // Toffoli gate
-      circuit.addGate('z', 2);
-      circuit.addGate('ccx', [0, 1, 2]); // Undo Toffoli
+      // Grover iteration (optimal for 3 qubits is ~2 iterations)
+      const iterations = Math.floor(Math.PI * Math.sqrt(8) / 4); // π√N/4 ≈ 2
       
-      // Diffusion operator
-      circuit.addGate('h', 0);
-      circuit.addGate('h', 1);
-      circuit.addGate('h', 2);
-      circuit.addGate('x', 0);
-      circuit.addGate('x', 1);
-      circuit.addGate('x', 2);
-      circuit.addGate('ccx', [0, 1, 2]);
-      circuit.addGate('z', 2);
-      circuit.addGate('ccx', [0, 1, 2]);
-      circuit.addGate('x', 0);
-      circuit.addGate('x', 1);
-      circuit.addGate('x', 2);
-      circuit.addGate('h', 0);
-      circuit.addGate('h', 1);
-      circuit.addGate('h', 2);
+      for (let iter = 0; iter < iterations; iter++) {
+        // Oracle: mark state |111⟩ with phase flip
+        circuit.addGate('x', 0); // Flip to |0⟩ for controlled operations
+        circuit.addGate('x', 1);
+        circuit.addGate('x', 2);
+        circuit.addGate('ccx', [0, 1, 2]); // Controlled-controlled-X
+        circuit.addGate('z', 2); // Phase flip the target state
+        circuit.addGate('ccx', [0, 1, 2]); // Undo controlled-controlled-X
+        circuit.addGate('x', 0); // Flip back
+        circuit.addGate('x', 1);
+        circuit.addGate('x', 2);
+        
+        // Diffusion operator (inversion about average)
+        circuit.addGate('h', 0);
+        circuit.addGate('h', 1);
+        circuit.addGate('h', 2);
+        circuit.addGate('x', 0);
+        circuit.addGate('x', 1);
+        circuit.addGate('x', 2);
+        circuit.addGate('ccx', [0, 1, 2]);
+        circuit.addGate('z', 2);
+        circuit.addGate('ccx', [0, 1, 2]);
+        circuit.addGate('x', 0);
+        circuit.addGate('x', 1);
+        circuit.addGate('x', 2);
+        circuit.addGate('h', 0);
+        circuit.addGate('h', 1);
+        circuit.addGate('h', 2);
+      }
       
       // Run simulation
       circuit.run();
@@ -182,8 +194,12 @@ class GroverSearchDemo {
         });
       
       const targetProb = probabilities['111'] || 0;
+      const theoreticalProb = Math.pow(Math.sin((2 * iterations + 1) * Math.asin(1/Math.sqrt(8))), 2);
+      
       console.log(`   🎯 Target state |111⟩ probability: ${(targetProb * 100).toFixed(1)}%`);
-      console.log(`   ✅ Expected ~85% for optimal Grover iteration`);
+      console.log(`   📊 Theoretical probability: ${(theoreticalProb * 100).toFixed(1)}%`);
+      console.log(`   ⚡ Quantum speedup: ${Math.sqrt(8).toFixed(1)}x vs classical`);
+      console.log(`   🔄 Iterations used: ${iterations} (optimal for 8 items)`);
       
     } catch (error) {
       console.log('   ❌ Real quantum simulation failed:', error.message);

@@ -56,6 +56,7 @@ export enum BotCategory {
   ANALYSIS = 'analysis',
   AUTOMATION = 'automation',
   INTEGRATION = 'integration',
+  UTILITY = 'utility',
   CUSTOM = 'custom'
 }
 
@@ -65,15 +66,17 @@ export enum CapabilityType {
   FILE_MANIPULATION = 'file-manipulation',
   API_INTEGRATION = 'api-integration',
   DATA_TRANSFORMATION = 'data-transformation',
-  WORKFLOW_AUTOMATION = 'workflow-automation'
+  WORKFLOW_AUTOMATION = 'workflow-automation',
+  CHAT = 'chat'
 }
 
 export enum Permission {
   FILE_READ = 'file:read',
   FILE_WRITE = 'file:write',
   NETWORK_ACCESS = 'network:access',
-  SYSTEM_COMMANDS = 'system:commands',
-  PLUGIN_MANAGEMENT = 'plugin:management'
+  SYSTEM_EXEC = 'system:exec',
+  DATABASE_READ = 'database:read',
+  DATABASE_WRITE = 'database:write'
 }
 
 export interface IBotRegistry {
@@ -93,6 +96,10 @@ export interface IBotRegistry {
   
   // Installation and lifecycle
   installBot(botId: string, version?: string): Promise<void>;
+  
+  // Event emitter capabilities
+  on(event: string, listener: (...args: any[]) => void): this;
+  emit(event: string, ...args: any[]): boolean;
   uninstallBot(botId: string): Promise<void>;
   enableBot(botId: string): Promise<void>;
   disableBot(botId: string): Promise<void>;
@@ -141,6 +148,7 @@ export interface BotTest {
   description: string;
   input: any;
   expectedOutput: any;
+  result: boolean;
   timeout?: number;
 }
 

@@ -10,7 +10,8 @@ import { SensorResult } from '../types/core';
 export enum PlatformType {
   WEB = 'WEB',
   DESKTOP = 'DESKTOP',
-  HYBRID = 'HYBRID'
+  HYBRID = 'HYBRID',
+  NODE = 'NODE'
 }
 
 // Whispering Observer Base Interface

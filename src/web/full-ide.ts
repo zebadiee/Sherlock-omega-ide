@@ -178,7 +178,10 @@ export class FullSherlockIDE {
           return;
         }
 
-        terminal.stdin?.write(command + '\n');
+        const stdin = terminal.stdin ?? process.stdin;
+        if (stdin && 'write' in stdin) {
+          stdin.write(command + '\n');
+        }
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true }));
       } catch (error) {

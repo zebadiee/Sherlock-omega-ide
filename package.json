@@ -56,7 +56,7 @@
     "commander": "^12.0.0",
     "express": "^5.1.0",
     "monaco-editor": "^0.52.2",
-    "quantum-circuit": "^2.8.0",
+    "quantum-circuit": "^0.9.241",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.1"
   },

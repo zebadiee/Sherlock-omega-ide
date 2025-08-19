@@ -111,7 +111,7 @@ class QuantumSystemTester {
       }
       
     } catch (error) {
-      if (error.code === 'MODULE_NOT_FOUND') {
+      if ((error as any).code === 'MODULE_NOT_FOUND') {
         throw new Error('quantum-circuit library not installed. Run: npm install quantum-circuit');
       }
       throw error;

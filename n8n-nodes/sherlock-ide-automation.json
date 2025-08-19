@@ -1,0 +1,53 @@
+{
+  "name": "Sherlock IDE Automation",
+  "version": "1.0.0",
+  "description": "Automated code generation and optimization for Sherlock Ω IDE",
+  "displayName": "Sherlock IDE",
+  "icon": "file:sherlock.svg",
+  "group": ["development"],
+  "inputs": ["main"],
+  "outputs": ["main"],
+  "credentials": [],
+  "properties": [
+    {
+      "displayName": "Operation",
+      "name": "operation",
+      "type": "options",
+      "options": [
+        {
+          "name": "Generate Code",
+          "value": "generateCode",
+          "description": "Generate code using AI assistance"
+        },
+        {
+          "name": "Optimize Build",
+          "value": "optimizeBuild",
+          "description": "Optimize build process with quantum enhancement"
+        },
+        {
+          "name": "Analyze Patterns",
+          "value": "analyzePatterns",
+          "description": "Analyze code patterns and suggest improvements"
+        }
+      ],
+      "default": "generateCode"
+    },
+    {
+      "displayName": "Description",
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "placeholder": "Describe what you want to generate or optimize",
+      "description": "Natural language description of the task"
+    },
+    {
+      "displayName": "Quantum Enhancement",
+      "name": "quantumEnhanced",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable quantum-enhanced processing"
+    }
+  ],
+  "webhooks": [],
+  "polling": false
+}

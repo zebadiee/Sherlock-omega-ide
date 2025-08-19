@@ -264,6 +264,9 @@ export interface IQuantumSimulator {
   
   // Performance optimization
   optimizeForBackend(circuit: QuantumCircuit, backend: QuantumBackend): Promise<QuantumCircuit>;
+  
+  // Lifecycle management
+  shutdown(): Promise<void>;
 }
 
 export interface NoiseModel {

@@ -7,7 +7,8 @@
 export enum PlatformType {
   WEB = 'WEB',
   DESKTOP = 'DESKTOP',
-  HYBRID = 'HYBRID'
+  HYBRID = 'HYBRID',
+  NODE = 'NODE'
 }
 
 export interface PlatformCapabilities {

@@ -114,7 +114,7 @@ return items;`;
       logger.info('🚀 Ready for autonomous IDE development and n8n integration');
 
     } catch (error) {
-      logger.error('❌ Self-Builder bootstrap failed:', error);
+      logger.error('❌ Self-Builder bootstrap failed:', error as Record<string, unknown>);
       throw error;
     }
   }
@@ -187,7 +187,7 @@ return items;`;
       logger.info('📋 Workflow can be imported into n8n for automation');
 
     } catch (error) {
-      logger.error('❌ Self-improvement workflow creation failed:', error);
+      logger.error('❌ Self-improvement workflow creation failed:', error as Record<string, unknown>);
       throw error;
     }
   }
@@ -244,7 +244,7 @@ return items;`;
       logger.info('   5. Iterate based on user feedback');
 
     } catch (error) {
-      logger.error('❌ Autonomous development kickstart failed:', error);
+      logger.error('❌ Autonomous development kickstart failed:', error as Record<string, unknown>);
       throw error;
     }
   }

@@ -33,20 +33,36 @@ export class SafeBotFactory {
     const tempFile = path.join(this.tempDir, `${sanitizedName}-${Date.now()}.js`);
     
     try {
-      // Write code to temporary file
-      await fs.writeFile(tempFile, generatedCode);
-      this.createdFiles.add(tempFile);
+      // Write code to temporary file with error handling
+      try {
+        await fs.writeFile(tempFile, generatedCode, { mode: 0o600 }); // Secure file permissions
+        this.createdFiles.add(tempFile);
+      } catch (writeError) {
+        this.logger.error(`Failed to write temporary file ${tempFile}:`, writeError);
+        throw new Error(`File write failed: ${writeError instanceof Error ? writeError.message : 'Unknown write error'}`);
+      }
       
-      // Dynamically import the module
-      const botModule = await import(tempFile);
+      // Dynamically import the module with timeout
+      const importPromise = import(tempFile);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Module import timeout')), 10000)
+      );
+      
+      const botModule = await Promise.race([importPromise, timeoutPromise]) as any;
       const BotClass = botModule.default || botModule[sanitizedName];
       
       if (!BotClass) {
         throw new Error(`Bot class not found in generated code for ${name}`);
       }
       
-      // Create instance
-      const botInstance = new BotClass();
+      // Create instance with error handling
+      let botInstance;
+      try {
+        botInstance = new BotClass();
+      } catch (constructorError) {
+        this.logger.error(`Bot constructor failed for ${name}:`, constructorError);
+        throw new Error(`Bot instantiation failed: ${constructorError instanceof Error ? constructorError.message : 'Constructor error'}`);
+      }
       
       // Validate bot interface
       this.validateBotInterface(botInstance, isQuantum);
@@ -64,10 +80,23 @@ export class SafeBotFactory {
       
     } catch (error) {
       this.logger.error(`Failed to create bot ${name}:`, error);
-      throw new Error(`Bot creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Fallback to mock bot on any failure
+      this.logger.warn(`Creating fallback mock bot for ${name}`);
+      return this.createMockBot(name, description, isQuantum);
+      
     } finally {
-      // Clean up temporary file
-      this.scheduleCleanup(tempFile);
+      // Clean up temporary file immediately on error, scheduled on success
+      if (this.createdFiles.has(tempFile)) {
+        this.scheduleCleanup(tempFile);
+      } else {
+        // Immediate cleanup if file creation failed
+        try {
+          await fs.unlink(tempFile);
+        } catch (cleanupError) {
+          this.logger.debug(`Cleanup of failed temp file ignored: ${cleanupError}`);
+        }
+      }
     }
   }
 

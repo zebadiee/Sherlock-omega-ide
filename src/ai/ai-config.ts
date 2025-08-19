@@ -15,6 +15,7 @@ export interface AIConfig {
     codeReview: string;
     debugging: string;
     explanation: string;
+    [key: string]: string;
   };
   behavior: {
     autoImplement: boolean;

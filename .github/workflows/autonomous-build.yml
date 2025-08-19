@@ -1,0 +1,78 @@
+name: Autonomous Self-Builder
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # Run daily at 1 AM UTC
+  workflow_dispatch:     # Allow manual triggering
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'src/**'
+      - 'package.json'
+
+jobs:
+  autonomous-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run self-build process
+      run: npm run self-build
+      
+    - name: Run system tests
+      run: npm run test:system
+      
+    - name: Check quantum advantage
+      run: |
+        echo "Checking quantum advantage metrics..."
+        if grep -q "quantum advantage: [2-9]" logs/sherlock-omega.log; then
+          echo "✅ Quantum advantage achieved!"
+        else
+          echo "⚠️ Quantum advantage below threshold"
+        fi
+        
+    - name: Generate build report
+      run: |
+        echo "## 🤖 Autonomous Build Report" > build-report.md
+        echo "**Date:** $(date)" >> build-report.md
+        echo "**Quantum Advantage:** $(grep -o 'quantum advantage: [0-9.]*x' logs/sherlock-omega.log | tail -1)" >> build-report.md
+        echo "**Memory Usage:** $(grep -o 'Memory usage: [0-9]*MB' logs/sherlock-omega.log | tail -1)" >> build-report.md
+        echo "**Features Generated:** $(ls -1 src/features/*.ts | wc -l)" >> build-report.md
+        echo "**n8n Nodes:** $(ls -1 n8n-nodes/*.json | wc -l)" >> build-report.md
+        
+    - name: Commit generated files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "Self-Builder Bot"
+        git add n8n-nodes/ src/features/ logs/
+        git diff --staged --quiet || git commit -m "🤖 Autonomous build: Generated new features and optimizations"
+        
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
+        
+    - name: Create issue on failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🚨 Autonomous Build Failed',
+            body: `The autonomous self-builder failed on ${new Date().toISOString()}. Please check the logs and quantum circuit integration.`,
+            labels: ['bug', 'autonomous-build']
+          })

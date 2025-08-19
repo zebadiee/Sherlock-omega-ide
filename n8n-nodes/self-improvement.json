@@ -1,0 +1,65 @@
+{
+  "name": "IDE Self-Improvement",
+  "version": "1.0.0",
+  "description": "Autonomous IDE self-improvement and feature generation",
+  "displayName": "Self-Improvement Bot",
+  "icon": "file:robot.svg",
+  "group": ["ai", "automation"],
+  "inputs": ["main"],
+  "outputs": ["main"],
+  "credentials": [],
+  "properties": [
+    {
+      "displayName": "Improvement Type",
+      "name": "improvementType",
+      "type": "options",
+      "options": [
+        {
+          "name": "Feature Generation",
+          "value": "generateFeature",
+          "description": "Generate new IDE features"
+        },
+        {
+          "name": "Code Analysis",
+          "value": "analyzeCode",
+          "description": "Analyze and improve existing code"
+        },
+        {
+          "name": "Performance Optimization",
+          "value": "optimizePerformance",
+          "description": "Optimize system performance"
+        },
+        {
+          "name": "Test Generation",
+          "value": "generateTests",
+          "description": "Generate comprehensive tests"
+        }
+      ],
+      "default": "generateFeature"
+    },
+    {
+      "displayName": "Target Area",
+      "name": "targetArea",
+      "type": "string",
+      "default": "",
+      "placeholder": "e.g., quantum debugging, code completion, etc.",
+      "description": "Specific area to improve or generate"
+    },
+    {
+      "displayName": "Autonomous Mode",
+      "name": "autonomousMode",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable fully autonomous improvement without human intervention"
+    },
+    {
+      "displayName": "Quality Threshold",
+      "name": "qualityThreshold",
+      "type": "number",
+      "default": 90,
+      "description": "Minimum quality score (0-100) for generated improvements"
+    }
+  ],
+  "webhooks": [],
+  "polling": false
+}

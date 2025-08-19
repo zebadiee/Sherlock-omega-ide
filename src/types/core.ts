@@ -3,6 +3,9 @@
  * Fundamental types used across all modules
  */
 
+// Re-export platform types for convenience
+export { PlatformType } from './platform';
+
 // Computational Issue Types
 export interface ComputationalIssue {
   id: string;
