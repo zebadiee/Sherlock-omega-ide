@@ -1,0 +1,98 @@
+/* src/web/styles.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for the Sherlock Ω IDE */
+.App {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Quantum-themed animations */
+@keyframes quantum-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.quantum-pulse {
+  animation: quantum-pulse 2s ease-in-out infinite;
+}
+
+/* Terminal-style logs */
+.terminal-log {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background: #000;
+  color: #00ff00;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+/* Status indicators */
+.status-healthy {
+  @apply text-green-600 bg-green-50 border-green-200;
+}
+
+.status-warning {
+  @apply text-yellow-600 bg-yellow-50 border-yellow-200;
+}
+
+.status-critical {
+  @apply text-red-600 bg-red-50 border-red-200;
+}
+
+/* Gradient backgrounds for metrics cards */
+.metric-card-quantum {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.metric-card-speed {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.metric-card-quality {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Loading animations */
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive design helpers */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}

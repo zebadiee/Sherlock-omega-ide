@@ -535,15 +535,20 @@ export class EnhancedSherlockSystem extends EventEmitter {
     }>;
   } {
     const bots = Array.from((this.pluginSystem as any).bots.values());
-    const botPerformance = bots.map(bot => ({
+    const botPerformance = bots.map((bot: any) => ({
       bot,
-      performance: bot.usage
+      performance: bot.usage || {
+        totalRequests: 0,
+        successRate: 0,
+        averageResponseTime: 0,
+        lastUsed: undefined
+      }
     }));
 
     const models = Array.from((this.modelRouter as any).models.keys());
-    const modelAnalytics = models.map(modelId => ({
-      modelId,
-      analytics: this.modelRouter.getModelAnalytics(modelId)
+    const modelAnalytics = models.map((modelId: any) => ({
+      modelId: String(modelId),
+      analytics: this.modelRouter.getModelAnalytics(String(modelId))
     }));
 
     return {

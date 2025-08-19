@@ -62,27 +62,27 @@ export class TestRunner {
   }
 
   private async executeBuildOptimizationTest(context: any): Promise<Partial<ValidationResult>> {
-    // Placeholder for BuildOptimizationEngine integration
-    const targetQuantumAdvantage = context.targetQuantumAdvantage || 1.8;
-    const targetSpeedImprovement = context.targetSpeedImprovement || 37;
+    // Use real BuildOptimizationEngine
+    const { BuildOptimizationEngine } = await import('./engines/BuildOptimizationEngine');
+    const engine = new BuildOptimizationEngine();
     
-    // Mock quantum advantage calculation (will be replaced with actual engine)
-    const mockQuantumAdvantage = 1.9; // Simulated 1.9x advantage
-    const mockSpeedImprovement = 42;   // Simulated 42% improvement
-    
-    const success = mockQuantumAdvantage >= targetQuantumAdvantage && 
-                   mockSpeedImprovement >= targetSpeedImprovement;
-    
-    return {
-      success,
-      message: `Build optimization: ${mockQuantumAdvantage}x quantum advantage, ${mockSpeedImprovement}% speed improvement`,
-      metrics: {
-        quantumAdvantage: mockQuantumAdvantage,
-        speedImprovement: mockSpeedImprovement,
-        targetQuantumAdvantage,
-        targetSpeedImprovement
-      }
-    };
+    try {
+      const result = await engine.validate();
+      return {
+        success: result.success,
+        message: result.message,
+        metrics: result.metrics
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Build optimization engine failed: ${error}`,
+        metrics: {
+          targetQuantumAdvantage: context.targetQuantumAdvantage || 1.8,
+          targetSpeedImprovement: context.targetSpeedImprovement || 37
+        }
+      };
+    }
   }
 
   private async executeCodeImprovementTest(context: any): Promise<Partial<ValidationResult>> {

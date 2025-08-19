@@ -280,7 +280,7 @@ export class BotRegistry extends EventEmitter implements IBotRegistry {
 
       // Validate permissions
       const dangerousPermissions = bot.configuration.permissions.filter(p => 
-        p === Permission.SYSTEM_COMMANDS || p === Permission.FILE_WRITE
+        p === Permission.SYSTEM_EXEC || p === Permission.FILE_WRITE
       );
       
       if (dangerousPermissions.length > 0) {
@@ -310,7 +310,7 @@ export class BotRegistry extends EventEmitter implements IBotRegistry {
       const permissions = bot.configuration.permissions;
 
       // Check for high-risk permissions
-      if (permissions.includes(Permission.SYSTEM_COMMANDS)) {
+      if (permissions.includes(Permission.SYSTEM_EXEC)) {
         risks.push({
           level: RiskLevel.HIGH,
           description: 'Bot can execute system commands',

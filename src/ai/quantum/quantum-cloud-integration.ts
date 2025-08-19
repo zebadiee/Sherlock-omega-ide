@@ -10,8 +10,8 @@ import { Logger } from '../../logging/logger';
 import { PerformanceMonitor } from '../../monitoring/performance-monitor';
 import { spawn } from 'child_process';
 import {
-  QuantumCircuitDefinition,
-  QuantumSimulationOutput,
+  QuantumBotDefinition as QuantumCircuitDefinition,
+  QuantumSimulationResult as QuantumSimulationOutput,
   QuantumBackend,
   NoiseModel,
   QuantumError,

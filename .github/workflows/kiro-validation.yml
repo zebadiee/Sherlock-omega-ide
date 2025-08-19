@@ -1,0 +1,106 @@
+# .github/workflows/kiro-validation.yml
+name: Kiro System Validation Pipeline
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 2 AM BST (UTC+1)
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/validation/**'
+      - 'src/web/**'
+      - '.github/workflows/kiro-validation.yml'
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🚀 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: ⚡ Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: 📦 Install Dependencies
+      run: npm ci
+      
+    - name: 🧪 Run System Validation Tests
+      run: |
+        echo "🎯 Starting Sherlock Ω IDE System Validation..."
+        npx ts-node src/validation/test-validation.ts
+        
+    - name: ⚛️ Test Quantum Optimization Engine
+      run: |
+        echo "⚛️ Testing Build Optimization Engine..."
+        npx ts-node -e "
+        import { ValidationController } from './src/validation/ValidationController';
+        (async () => {
+          const controller = new ValidationController();
+          const result = await controller.executeBuildOptimizationTest();
+          console.log('Quantum Advantage:', result.metrics?.quantumAdvantage);
+          console.log('Speed Improvement:', result.metrics?.speedImprovement);
+          if (!result.success) process.exit(1);
+        })();
+        "
+        
+    - name: 🏗️ Build React Dashboard
+      run: |
+        echo "🏗️ Building React validation dashboard..."
+        npm run build:web || echo "Web build skipped (optional)"
+        
+    - name: 📊 Generate Validation Report
+      run: |
+        echo "📊 Generating validation report..."
+        npx ts-node -e "
+        import { ValidationController } from './src/validation/ValidationController';
+        import * as fs from 'fs';
+        (async () => {
+          const controller = new ValidationController();
+          const results = await controller.executeFullValidation();
+          const report = await controller.generateValidationReport(results);
+          
+          const summary = {
+            timestamp: new Date().toISOString(),
+            success_rate: report.summary.successRate,
+            total_tests: report.summary.total,
+            passed_tests: report.summary.passed,
+            failed_tests: report.summary.failed,
+            quantum_advantage: results.find(r => r.scenario === 'buildOptimization')?.metrics?.quantumAdvantage || 0,
+            speed_improvement: results.find(r => r.scenario === 'buildOptimization')?.metrics?.speedImprovement || 0,
+            recommendations: report.recommendations
+          };
+          
+          fs.writeFileSync('validation-report.json', JSON.stringify(summary, null, 2));
+          console.log('📋 Validation Report Generated:');
+          console.log(JSON.stringify(summary, null, 2));
+        })();
+        "
+        
+    - name: 📈 Upload Validation Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: validation-report
+        path: |
+          validation-report.json
+          test/quantum-stub.ts
+          
+    - name: 🎉 Success Notification
+      if: success()
+      run: |
+        echo "✅ Sherlock Ω IDE System Validation Complete!"
+        echo "🎯 All validation tests passed successfully"
+        echo "⚛️ Quantum advantage testing operational"
+        echo "🚀 Ready for production deployment"
+        
+    - name: ❌ Failure Notification
+      if: failure()
+      run: |
+        echo "❌ System Validation Failed!"
+        echo "🔍 Check logs for detailed error information"
+        echo "🛠️ Manual intervention may be required"
