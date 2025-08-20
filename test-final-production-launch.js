@@ -2,11 +2,27 @@
 
 /**
  * Final Production Launch Test
- * Ultimate validation for Sherlock Ω IDE production deployment
+ * Ultimate validation for SHERLΩCK Ω IDE production deployment
  */
 
 const chalk = require('chalk');
 const figlet = require('figlet');
+
+// Handle stream errors gracefully (prevents EPIPE issues)
+process.stdout.on('error', (err) => {
+  if (err.code === 'EPIPE') {
+    console.error('Warning: Output pipe broken, logging to file.');
+    const fs = require('fs');
+    fs.appendFileSync('launch_test.log', `Error at ${new Date()}: ${err.message}\n`);
+    process.exit(0);
+  }
+});
+
+process.stderr.on('error', (err) => {
+  if (err.code === 'EPIPE') {
+    process.exit(0);
+  }
+});
 
 console.log(chalk.green(figlet.textSync('LAUNCH', { font: 'ANSI Shadow' })));
 console.log(chalk.cyan('🚀 Final Production Launch Validation\n'));
