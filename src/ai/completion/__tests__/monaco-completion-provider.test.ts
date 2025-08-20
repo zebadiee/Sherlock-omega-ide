@@ -42,8 +42,26 @@ describe('MonacoCompletionProvider', () => {
   let mockPerformanceMonitor: jest.Mocked<PerformanceMonitor>;
   let mockModel: jest.Mocked<monaco.editor.ITextModel>;
   let mockCancellationToken: jest.Mocked<monaco.CancellationToken>;
+  
+  // Mock context objects
+  let mockContext: monaco.languages.CompletionContext;
+  let mockCompletionContext: CompletionContext;
+  let mockPosition: monaco.Position;
 
   beforeEach(() => {
+    // Initialize mock objects
+    mockContext = { triggerKind: monaco.languages.CompletionTriggerKind.Invoke };
+    mockCompletionContext = {
+      type: CompletionType.FUNCTION,
+      scope: 'local',
+      imports: [],
+      variables: [],
+      functions: [],
+      classes: [],
+      suggestions: []
+    };
+    mockPosition = { lineNumber: 1, column: 1 } as monaco.Position;
+    
     // Create mocks
     mockContextAnalyzer = {
       analyzeCompletionContext: jest.fn(),

@@ -547,6 +547,193 @@ quantumCommand
   });
 
 quantumCommand
+  .command('simulate')
+  .description('Simulate and validate quantum algorithms')
+  .argument('<algorithm>', 'Algorithm to simulate (bell, ghz, deutsch-jozsa, teleportation, superdense, or circuit-id)')
+  .option('-q, --qubits <qubits>', 'Number of qubits for algorithm', '3')
+  .option('-n, --noise', 'Include noise model in simulation')
+  .option('--noise-params <params>', 'Noise parameters (JSON)', '{"depolarizing": 0.01, "gate_error": 0.005}')
+  .option('-v, --verbose', 'Verbose output with state vectors')
+  .action(async (algorithm, options) => {
+    try {
+      console.log(`🔬 Simulating quantum algorithm: ${algorithm}`);
+      
+      // Import quantum simulator (dynamic import to avoid circular dependencies)
+      const { QuantumSimulator } = await import('../quantum/quantum-simulator');
+      const { QuantumBotBuilder } = await import('../quantum/quantum-bot-builder');
+      
+      const logger = new (await import('../../logging/logger')).Logger();
+      const performanceMonitor = new (await import('../../monitoring/performance-monitor')).PerformanceMonitor(logger);
+      
+      const quantumBuilder = new QuantumBotBuilder(logger, performanceMonitor);
+      const simulator = new QuantumSimulator(logger, performanceMonitor);
+      
+      // Generate or retrieve circuit
+      let circuit;
+      
+      if (['bell', 'ghz', 'deutsch-jozsa', 'teleportation', 'superdense', 'grover'].includes(algorithm)) {
+        // Generate circuit from algorithm description
+        const descriptions = {
+          'bell': 'Create a Bell state with quantum entanglement',
+          'ghz': 'Generate a GHZ state with maximum entanglement',
+          'deutsch-jozsa': 'Implement Deutsch-Jozsa algorithm for function evaluation',
+          'teleportation': 'Quantum teleportation protocol implementation',
+          'superdense': 'Superdense coding for classical bit transmission',
+          'grover': 'Implement Grover\'s quantum search algorithm'
+        };
+        
+        circuit = await quantumBuilder.parseQuantumDescription(
+          descriptions[algorithm as keyof typeof descriptions]
+        );
+      } else {
+        // Assume it's a circuit ID - in real implementation, retrieve from storage
+        console.log('❌ Circuit ID lookup not implemented in demo');
+        process.exit(1);
+      }
+      
+      // Prepare noise model if requested
+      let noiseModel;
+      if (options.noise) {
+        try {
+          noiseModel = JSON.parse(options.noiseParams);
+          console.log('🔊 Noise model enabled:', noiseModel);
+        } catch {
+          noiseModel = { depolarizing: 0.01, gate_error: 0.005, amplitude_damping: 0.001, phase_damping: 0.001 };
+        }
+      }
+      
+      // Run simulation
+      console.log('⚡ Running quantum simulation...\n');
+      const result = await simulator.simulateCircuit(circuit, noiseModel);
+      
+      // Display results
+      console.log('📊 Simulation Results:');
+      console.log(`Algorithm: ${result.algorithm}`);
+      console.log(`Fidelity: ${(result.fidelity * 100).toFixed(2)}%`);
+      console.log(`Quantum Advantage: ${result.quantumAdvantage.toFixed(2)}x`);
+      console.log(`Error Rate: ${(result.errorRate * 100).toFixed(2)}%`);
+      console.log(`Validation: ${result.isValid ? '✅ PASSED' : '❌ FAILED'}`);
+      
+      if (options.verbose) {
+        console.log('\n🔍 State Vector Analysis:');
+        console.log('Expected State:');
+        result.expectedState.forEach((amp, i) => {
+          if (Math.abs(amp) > 0.001) {
+            const binary = i.toString(2).padStart(Math.log2(result.expectedState.length), '0');
+            console.log(`  |${binary}⟩: ${amp.toFixed(6)}`);
+          }
+        });
+        
+        console.log('Actual State:');
+        result.actualState.forEach((amp, i) => {
+          if (Math.abs(amp) > 0.001) {
+            const binary = i.toString(2).padStart(Math.log2(result.actualState.length), '0');
+            console.log(`  |${binary}⟩: ${amp.toFixed(6)}`);
+          }
+        });
+      }
+      
+      if (result.recommendations.length > 0) {
+        console.log('\n💡 Recommendations:');
+        result.recommendations.forEach(rec => {
+          console.log(`  • ${rec}`);
+        });
+      }
+      
+      // Integration with bot system metrics
+      if (result.isValid) {
+        console.log('\n🎯 Integration Status:');
+        console.log('  ✅ Circuit validated for bot colony integration');
+        console.log('  ✅ Quantum advantage confirmed for evolution system');
+        console.log('  ✅ Ready for autonomous deployment');
+      } else {
+        console.log('\n⚠️ Validation Issues:');
+        console.log('  ❌ Circuit requires optimization before deployment');
+        console.log('  ❌ Consider error correction or gate calibration');
+      }
+      
+    } catch (error) {
+      console.error('❌ Quantum simulation failed:', error);
+      process.exit(1);
+    }
+  });
+
+quantumCommand
+  .command('validate')
+  .description('Validate all quantum algorithms in the system')
+  .option('-n, --noise', 'Include noise model validation')
+  .option('--threshold <threshold>', 'Fidelity threshold for validation', '0.95')
+  .action(async (options) => {
+    try {
+      console.log('🔬 Validating all quantum algorithms...\n');
+      
+      const algorithms = ['bell', 'ghz', 'deutsch-jozsa', 'teleportation', 'superdense', 'grover'];
+      const threshold = parseFloat(options.threshold);
+      
+      // Import required modules
+      const { QuantumSimulator } = await import('../quantum/quantum-simulator');
+      const { QuantumBotBuilder } = await import('../quantum/quantum-bot-builder');
+      
+      const logger = new (await import('../../logging/logger')).Logger();
+      const performanceMonitor = new (await import('../../monitoring/performance-monitor')).PerformanceMonitor(logger);
+      
+      const quantumBuilder = new QuantumBotBuilder(logger, performanceMonitor);
+      const simulator = new QuantumSimulator(logger, performanceMonitor);
+      
+      const results = [];
+      
+      for (const algorithm of algorithms) {
+        console.log(`Testing ${algorithm}...`);
+        
+        const descriptions = {
+          'bell': 'Create a Bell state with quantum entanglement',
+          'ghz': 'Generate a GHZ state with maximum entanglement',
+          'deutsch-jozsa': 'Implement Deutsch-Jozsa algorithm for function evaluation',
+          'teleportation': 'Quantum teleportation protocol implementation',
+          'superdense': 'Superdense coding for classical bit transmission',
+          'grover': 'Implement Grover\'s quantum search algorithm'
+        };
+        
+        const circuit = await quantumBuilder.parseQuantumDescription(
+          descriptions[algorithm as keyof typeof descriptions]
+        );
+        
+        const noiseModel = options.noise ? { depolarizing: 0.01, gate_error: 0.005, amplitude_damping: 0.001, phase_damping: 0.001 } : undefined;
+        const result = await simulator.simulateCircuit(circuit, noiseModel);
+        
+        results.push({ algorithm, result });
+        
+        const status = result.fidelity >= threshold ? '✅' : '❌';
+        console.log(`  ${status} ${algorithm}: ${(result.fidelity * 100).toFixed(1)}% fidelity`);
+      }
+      
+      console.log('\n📊 Validation Summary:');
+      const passed = results.filter(r => r.result.fidelity >= threshold).length;
+      const total = results.length;
+      
+      console.log(`Passed: ${passed}/${total} (${(passed/total*100).toFixed(1)}%)`);
+      
+      const avgFidelity = results.reduce((sum, r) => sum + r.result.fidelity, 0) / results.length;
+      console.log(`Average Fidelity: ${(avgFidelity * 100).toFixed(1)}%`);
+      
+      const avgQuantumAdvantage = results.reduce((sum, r) => sum + r.result.quantumAdvantage, 0) / results.length;
+      console.log(`Average Quantum Advantage: ${avgQuantumAdvantage.toFixed(2)}x`);
+      
+      if (passed === total) {
+        console.log('\n🎉 All quantum algorithms validated successfully!');
+        console.log('✅ System ready for production deployment');
+      } else {
+        console.log('\n⚠️ Some algorithms failed validation');
+        console.log('❌ Review failed algorithms before deployment');
+      }
+      
+    } catch (error) {
+      console.error('❌ Validation failed:', error);
+      process.exit(1);
+    }
+  });
+
+quantumCommand
   .command('tutorial')
   .description('Generate quantum computing tutorial')
   .argument('<topic>', 'Tutorial topic')

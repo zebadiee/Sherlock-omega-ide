@@ -67,7 +67,7 @@ async function testQuantumVisualizer() {
     ];
     
     surfaceCodeTests.forEach(test => {
-      const errorCount = Math.floor(test.qubits * visualizerMetrics.errorRate * 10);
+      const errorCount = Math.max(1, Math.floor(test.qubits * visualizerMetrics.errorRate * 100)); // Ensure at least 1 error for testing
       const correctedCount = Math.floor(errorCount * visualizerMetrics.correctionSuccess);
       
       console.log(`   Distance ${test.distance} (${test.qubits} qubits):`);

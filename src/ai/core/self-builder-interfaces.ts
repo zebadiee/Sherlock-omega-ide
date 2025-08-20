@@ -21,6 +21,9 @@ export interface ISelfBuilderBot extends IQuantumBot {
   planFeatureImplementation(requirements: string): Promise<ImplementationPlan>;
   generateTests(code: string): Promise<TestGenerationResult>;
   
+  // Quantum algorithm building
+  buildQuantumAlgorithm(description: string): Promise<QuantumAlgorithmBuildResult>;
+  
   // Integration capabilities
   createWorkflowNode(workflow: WorkflowDescription): Promise<WorkflowNodeResult>;
   integrateWithIDE(feature: IDEIntegration): Promise<IntegrationResult>;
@@ -216,6 +219,20 @@ export interface SelfBuilderConfig {
   learningEnabled: boolean;
   maxComplexity: 'simple' | 'moderate' | 'advanced';
   targetPlatforms: ('web' | 'desktop' | 'cloud')[];
+}
+
+// Quantum algorithm building result
+export interface QuantumAlgorithmBuildResult {
+  algorithmName: string;
+  description: string;
+  qubits: number;
+  code: string;
+  documentation: string;
+  testCode: string;
+  dependencies: string[];
+  complexity: 'simple' | 'moderate' | 'advanced';
+  quantumAdvantage: number;
+  estimatedRuntime: string;
 }
 
 // Self-improvement tracking

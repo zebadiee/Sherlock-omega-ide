@@ -1,574 +1,230 @@
-import { PlatformType } from '../core/whispering-interfaces';
-
 /**
- * Performance metric types that can be tracked
+ * Performance Monitor for Sherlock Ω
+ * Tracks system performance, resource usage, and metrics
  */
-export enum MetricType {
-  // Timing metrics
-  RESPONSE_TIME = 'response_time',
-  EXECUTION_TIME = 'execution_time',
-  RENDER_TIME = 'render_time',
-  
-  // Resource metrics
-  MEMORY_USAGE = 'memory_usage',
-  CPU_USAGE = 'cpu_usage',
-  STORAGE_USAGE = 'storage_usage',
-  
-  // Business metrics
-  EVOLUTION_CYCLES = 'evolution_cycles',
-  LEARNING_EVENTS = 'learning_events',
-  WHISPER_DELIVERIES = 'whisper_deliveries',
-  
-  // Error metrics
-  ERROR_RATE = 'error_rate',
-  FAILURE_COUNT = 'failure_count',
-  
-  // User experience metrics
-  INTERACTION_LATENCY = 'interaction_latency',
-  SUGGESTION_QUALITY = 'suggestion_quality'
+
+import { Logger } from '../logging/logger';
+
+export interface PerformanceMetrics {
+  cpuUsage: number;
+  memoryUsage: {
+    used: number;
+    total: number;
+    percentage: number;
+  };
+  responseTime: number;
+  throughput: number;
+  errorRate: number;
+  uptime: number;
 }
 
-/**
- * Performance metric with metadata
- */
-export interface PerformanceMetric {
+export interface OperationMetrics {
   name: string;
-  type: MetricType;
-  value: number;
-  timestamp: Date;
-  platform: PlatformType;
-  context: Record<string, unknown>;
-  tags: string[];
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  success: boolean;
+  error?: string;
+  metadata?: any;
 }
 
-/**
- * Performance threshold configuration
- */
-export interface PerformanceThreshold {
-  metric: string;
-  warning: number;
-  critical: number;
-  action: 'log' | 'alert' | 'throttle' | 'disable';
-}
-
-/**
- * Performance monitoring configuration
- */
-export interface PerformanceConfig {
-  enabled: boolean;
-  sampleRate: number; // 0-1, percentage of metrics to collect
-  retentionPeriod: number; // milliseconds
-  thresholds: PerformanceThreshold[];
-  alerting: boolean;
-  exportMetrics: boolean;
-}
-
-/**
- * Performance alert when thresholds are exceeded
- */
-export interface PerformanceAlert {
-  id: string;
-  metric: string;
-  threshold: PerformanceThreshold;
-  currentValue: number;
-  timestamp: Date;
-  severity: 'warning' | 'critical';
-  context: Record<string, unknown>;
-}
-
-/**
- * Comprehensive performance monitoring system for Sherlock Omega IDE
- * 
- * Tracks various metrics including:
- * - Response times and execution performance
- * - Resource usage (memory, CPU, storage)
- * - Business metrics (evolution cycles, learning events)
- * - Error rates and failure counts
- * - User experience metrics
- * 
- * Features:
- * - Configurable thresholds with alerts
- * - Metric aggregation and statistics
- * - Platform-specific optimizations
- * - Export capabilities for analysis
- * 
- * @example
- * ```typescript
- * const monitor = new PerformanceMonitor(PlatformType.WEB);
- * 
- * // Track a timing metric
- * monitor.recordMetric('api_call', 150, MetricType.RESPONSE_TIME);
- * 
- * // Get performance statistics
- * const avgResponseTime = monitor.getAverageMetric('api_call');
- * 
- * // Check for performance issues
- * const alerts = monitor.checkThresholds();
- * ```
- */
 export class PerformanceMonitor {
-  private metrics: Map<string, PerformanceMetric[]> = new Map();
-  private config: PerformanceConfig;
-  private platform: PlatformType;
-  private alerts: PerformanceAlert[] = [];
-  private startTime: Date;
-  private cleanupInterval?: NodeJS.Timeout;
+  private logger: Logger;
+  private startTime: number;
+  private operations: Map<string, OperationMetrics> = new Map();
+  private completedOperations: OperationMetrics[] = [];
+  private maxHistorySize: number = 1000;
 
-  constructor(platform: PlatformType, config?: Partial<PerformanceConfig>) {
-    this.platform = platform;
-    this.startTime = new Date();
-    
-    this.config = {
-      enabled: true,
-      sampleRate: 1.0, // Collect all metrics by default
-      retentionPeriod: 24 * 60 * 60 * 1000, // 24 hours
-      thresholds: this.getDefaultThresholds(),
-      alerting: true,
-      exportMetrics: false,
-      ...config
-    };
-
-    // Start cleanup interval
-    this.startCleanupInterval();
+  constructor(logger: Logger) {
+    this.logger = logger;
+    this.startTime = Date.now();
   }
 
   /**
-   * Records a performance metric
-   * @param name - Metric name identifier
-   * @param value - Metric value
-   * @param type - Type of metric
-   * @param context - Additional context data
-   * @param tags - Tags for categorization
+   * Start tracking an operation
    */
-  recordMetric(
-    name: string, 
-    value: number, 
-    type: MetricType,
-    context: Record<string, unknown> = {},
-    tags: string[] = []
-  ): void {
-    if (!this.config.enabled) return;
+  startOperation(name: string, metadata?: any): string {
+    const operationId = `${name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    // Apply sampling if configured
-    if (Math.random() > this.config.sampleRate) return;
-
-    const metric: PerformanceMetric = {
+    const operation: OperationMetrics = {
       name,
-      type,
-      value,
-      timestamp: new Date(),
-      platform: this.platform,
-      context,
-      tags
+      startTime: Date.now(),
+      success: false,
+      metadata
     };
 
-    if (!this.metrics.has(name)) {
-      this.metrics.set(name, []);
-    }
-    
-    this.metrics.get(name)!.push(metric);
+    this.operations.set(operationId, operation);
+    this.logger.debug(`Started operation: ${name}`, { operationId, metadata });
 
-    // Check thresholds and generate alerts
-    if (this.config.alerting) {
-      this.checkThreshold(name, value);
-    }
-
-    // Cleanup old metrics if retention period exceeded
-    this.cleanupOldMetrics(name);
+    return operationId;
   }
 
   /**
-   * Records a timing metric with automatic start/stop
-   * @param name - Metric name
-   * @param fn - Function to time
-   * @param context - Additional context
-   * @returns The result of the function
+   * End tracking an operation
    */
-  async timeAsync<T>(
-    name: string, 
-    fn: () => Promise<T>,
-    context: Record<string, unknown> = {}
-  ): Promise<T> {
-    const startTime = performance.now();
+  endOperation(operationId: string, success: boolean = true, error?: string): void {
+    const operation = this.operations.get(operationId);
+    if (!operation) {
+      this.logger.warn(`Operation not found: ${operationId}`);
+      return;
+    }
+
+    operation.endTime = Date.now();
+    operation.duration = operation.endTime - operation.startTime;
+    operation.success = success;
+    operation.error = error;
+
+    // Move to completed operations
+    this.completedOperations.push(operation);
+    this.operations.delete(operationId);
+
+    // Maintain history size
+    if (this.completedOperations.length > this.maxHistorySize) {
+      this.completedOperations.shift();
+    }
+
+    this.logger.debug(`Completed operation: ${operation.name}`, {
+      operationId,
+      duration: operation.duration,
+      success,
+      error
+    });
+  }
+
+  /**
+   * Get current performance metrics
+   */
+  getMetrics(): PerformanceMetrics {
+    const memUsage = process.memoryUsage();
+    const cpuUsage = process.cpuUsage();
+    
+    // Calculate derived metrics
+    const totalOperations = this.completedOperations.length;
+    const successfulOperations = this.completedOperations.filter(op => op.success).length;
+    const errorRate = totalOperations > 0 ? (totalOperations - successfulOperations) / totalOperations : 0;
+    
+    const recentOperations = this.completedOperations.slice(-100);
+    const avgResponseTime = recentOperations.length > 0 
+      ? recentOperations.reduce((sum, op) => sum + (op.duration || 0), 0) / recentOperations.length
+      : 0;
+
+    const uptime = Date.now() - this.startTime;
+    const throughput = totalOperations > 0 ? totalOperations / (uptime / 1000) : 0;
+
+    return {
+      cpuUsage: (cpuUsage.user + cpuUsage.system) / 1000000, // Convert to milliseconds
+      memoryUsage: {
+        used: memUsage.heapUsed,
+        total: memUsage.heapTotal,
+        percentage: (memUsage.heapUsed / memUsage.heapTotal) * 100
+      },
+      responseTime: avgResponseTime,
+      throughput,
+      errorRate: errorRate * 100, // Convert to percentage
+      uptime
+    };
+  }
+
+  /**
+   * Get operation statistics
+   */
+  getOperationStats(): {
+    active: number;
+    completed: number;
+    successRate: number;
+    averageDuration: number;
+    operationsByType: Record<string, number>;
+  } {
+    const completed = this.completedOperations.length;
+    const successful = this.completedOperations.filter(op => op.success).length;
+    const successRate = completed > 0 ? (successful / completed) * 100 : 100;
+    
+    const avgDuration = completed > 0
+      ? this.completedOperations.reduce((sum, op) => sum + (op.duration || 0), 0) / completed
+      : 0;
+
+    const operationsByType: Record<string, number> = {};
+    this.completedOperations.forEach(op => {
+      operationsByType[op.name] = (operationsByType[op.name] || 0) + 1;
+    });
+
+    return {
+      active: this.operations.size,
+      completed,
+      successRate,
+      averageDuration: avgDuration,
+      operationsByType
+    };
+  }
+
+  /**
+   * Get recent operations
+   */
+  getRecentOperations(limit: number = 10): OperationMetrics[] {
+    return this.completedOperations.slice(-limit);
+  }
+
+  /**
+   * Get operations by name
+   */
+  getOperationsByName(name: string): OperationMetrics[] {
+    return this.completedOperations.filter(op => op.name === name);
+  }
+
+  /**
+   * Clear operation history
+   */
+  clearHistory(): void {
+    this.completedOperations = [];
+    this.logger.info('Performance monitor history cleared');
+  }
+
+  /**
+   * Get system resource usage
+   */
+  getResourceUsage(): {
+    memory: NodeJS.MemoryUsage;
+    cpu: NodeJS.CpuUsage;
+    uptime: number;
+    loadAverage?: number[];
+  } {
+    return {
+      memory: process.memoryUsage(),
+      cpu: process.cpuUsage(),
+      uptime: process.uptime(),
+      loadAverage: process.platform !== 'win32' ? require('os').loadavg() : undefined
+    };
+  }
+
+  /**
+   * Monitor a function execution
+   */
+  async monitor<T>(name: string, fn: () => Promise<T>, metadata?: any): Promise<T> {
+    const operationId = this.startOperation(name, metadata);
+    
     try {
       const result = await fn();
-      const duration = performance.now() - startTime;
-      this.recordMetric(name, duration, MetricType.EXECUTION_TIME, context);
+      this.endOperation(operationId, true);
       return result;
     } catch (error) {
-      const duration = performance.now() - startTime;
-      this.recordMetric(name, duration, MetricType.EXECUTION_TIME, {
-        ...context,
-        error: error instanceof Error ? error.message : String(error),
-        success: false
-      });
+      this.endOperation(operationId, false, (error as Error).message);
       throw error;
     }
   }
 
   /**
-   * Records a synchronous timing metric
-   * @param name - Metric name
-   * @param fn - Function to time
-   * @param context - Additional context
-   * @returns The result of the function
+   * Monitor a synchronous function execution
    */
-  timeSync<T>(
-    name: string, 
-    fn: () => T,
-    context: Record<string, unknown> = {}
-  ): T {
-    const startTime = performance.now();
+  monitorSync<T>(name: string, fn: () => T, metadata?: any): T {
+    const operationId = this.startOperation(name, metadata);
+    
     try {
       const result = fn();
-      const duration = performance.now() - startTime;
-      this.recordMetric(name, duration, MetricType.EXECUTION_TIME, context);
+      this.endOperation(operationId, true);
       return result;
     } catch (error) {
-      const duration = performance.now() - startTime;
-      this.recordMetric(name, duration, MetricType.EXECUTION_TIME, {
-        ...context,
-        error: error instanceof Error ? error.message : String(error),
-        success: false
-      });
+      this.endOperation(operationId, false, (error as Error).message);
       throw error;
     }
-  }
-
-  /**
-   * Gets all metrics for a specific name
-   * @param name - Metric name
-   * @returns Array of metrics or empty array if none found
-   */
-  getMetrics(name: string): PerformanceMetric[] {
-    return this.metrics.get(name) || [];
-  }
-
-  /**
-   * Gets the average value for a metric
-   * @param name - Metric name
-   * @returns Average value or 0 if no metrics found
-   */
-  getAverageMetric(name: string): number {
-    const values = this.getMetrics(name);
-    if (values.length === 0) return 0;
-    
-    const sum = values.reduce((acc, metric) => acc + metric.value, 0);
-    return sum / values.length;
-  }
-
-  /**
-   * Gets the median value for a metric
-   * @param name - Metric name
-   * @returns Median value or 0 if no metrics found
-   */
-  getMedianMetric(name: string): number {
-    const values = this.getMetrics(name);
-    if (values.length === 0) return 0;
-    
-    const sortedValues = values.map(m => m.value).sort((a, b) => a - b);
-    const mid = Math.floor(sortedValues.length / 2);
-    
-    if (sortedValues.length % 2 === 0) {
-      return (sortedValues[mid - 1] + sortedValues[mid]) / 2;
-    }
-    return sortedValues[mid];
-  }
-
-  /**
-   * Gets the 95th percentile for a metric
-   * @param name - Metric name
-   * @returns 95th percentile value or 0 if no metrics found
-   */
-  get95thPercentileMetric(name: string): number {
-    const values = this.getMetrics(name);
-    if (values.length === 0) return 0;
-    
-    const sortedValues = values.map(m => m.value).sort((a, b) => a - b);
-    const index = Math.ceil(sortedValues.length * 0.95) - 1;
-    return sortedValues[index] || 0;
-  }
-
-  /**
-   * Gets performance summary for all metrics
-   * @returns Summary object with statistics
-   */
-  getPerformanceSummary(): Record<string, {
-    count: number;
-    average: number;
-    median: number;
-    p95: number;
-    min: number;
-    max: number;
-    lastValue: number;
-  }> {
-    const summary: Record<string, any> = {};
-    
-    for (const [name, metrics] of this.metrics) {
-      if (metrics.length === 0) continue;
-      
-      const values = metrics.map(m => m.value);
-      const sortedValues = values.sort((a, b) => a - b);
-      
-      summary[name] = {
-        count: metrics.length,
-        average: this.getAverageMetric(name),
-        median: this.getMedianMetric(name),
-        p95: this.get95thPercentileMetric(name),
-        min: sortedValues[0],
-        max: sortedValues[sortedValues.length - 1],
-        lastValue: metrics[metrics.length - 1].value
-      };
-    }
-    
-    return summary;
-  }
-
-  /**
-   * Gets all active performance alerts
-   * @returns Array of current alerts
-   */
-  getAlerts(): PerformanceAlert[] {
-    return [...this.alerts];
-  }
-
-  /**
-   * Clears all alerts
-   */
-  clearAlerts(): void {
-    this.alerts = [];
-  }
-
-  /**
-   * Exports metrics for external analysis
-   * @param format - Export format
-   * @returns Exported data
-   */
-  exportMetrics(format: 'json' | 'csv' = 'json'): string {
-    if (format === 'csv') {
-      return this.exportToCSV();
-    }
-    
-    return JSON.stringify({
-      platform: this.platform,
-      startTime: this.startTime,
-      endTime: new Date(),
-      metrics: Object.fromEntries(this.metrics),
-      summary: this.getPerformanceSummary(),
-      alerts: this.alerts
-    }, null, 2);
-  }
-
-  /**
-   * Resets all metrics and alerts
-   */
-  reset(): void {
-    this.metrics.clear();
-    this.alerts = [];
-    this.startTime = new Date();
-  }
-
-  /**
-   * Updates the monitoring configuration
-   * @param updates - Partial configuration updates
-   */
-  updateConfig(updates: Partial<PerformanceConfig>): void {
-    this.config = { ...this.config, ...updates };
-  }
-
-  /**
-   * Gets the current configuration
-   * @returns Current configuration
-   */
-  getConfig(): PerformanceConfig {
-    return { ...this.config };
-  }
-
-  /**
-   * Get evolution-specific metrics
-   */
-  async getEvolutionMetrics(): Promise<any> {
-    return {
-      // PerformanceMetrics properties
-      fileLoadTime: this.getAverageMetric('file_load_time') || 45,
-      uiFrameRate: this.getAverageMetric('ui_frame_rate') || 60,
-      memoryUsage: this.getAverageMetric('memory_usage') || 0.6,
-      analysisSpeed: this.getAverageMetric('analysis_speed') || 150,
-      
-      // EvolutionMetrics properties
-      evolutionRate: this.getAverageMetric('evolution_rate') || 0.85,
-      networkInstances: this.getMetrics('network_instances').length || 3,
-      learningAccuracy: this.getAverageMetric('learning_accuracy') || 0.92,
-      autonomousOperations: this.getMetrics('autonomous_operations').length || 12
-    };
-  }
-
-  /**
-   * Get comprehensive performance metrics
-   */
-  async getPerformanceMetrics(): Promise<any> {
-    return {
-      fileLoadTime: this.getAverageMetric('file_load_time') || 45,
-      uiFrameRate: this.getAverageMetric('ui_frame_rate') || 60,
-      memoryUsage: this.getAverageMetric('memory_usage') || 0.6,
-      analysisSpeed: this.getAverageMetric('analysis_speed') || 150
-    };
-  }
-
-  /**
-   * Identify performance bottlenecks
-   */
-  async identifyBottlenecks(): Promise<Array<{ component: string; type: string; impact: number; suggestion: string }>> {
-    const bottlenecks: Array<{ component: string; type: string; impact: number; suggestion: string }> = [];
-    
-    // Check response time bottlenecks
-    const avgResponseTime = this.getAverageMetric('response_time');
-    if (avgResponseTime > 1000) {
-      bottlenecks.push({
-        component: 'API Response',
-        type: 'response_time',
-        impact: Math.min(avgResponseTime / 1000, 10),
-        suggestion: `Optimize API response time (currently ${avgResponseTime}ms)`
-      });
-    }
-
-    // Check memory usage bottlenecks
-    const avgMemoryUsage = this.getAverageMetric('memory_usage');
-    if (avgMemoryUsage > 0.8) {
-      bottlenecks.push({
-        component: 'Memory Management',
-        type: 'memory_usage',
-        impact: avgMemoryUsage * 10,
-        suggestion: `Reduce memory usage (currently at ${(avgMemoryUsage * 100).toFixed(1)}%)`
-      });
-    }
-
-    // Check error rate bottlenecks
-    const avgErrorRate = this.getAverageMetric('error_rate');
-    if (avgErrorRate > 0.05) {
-      bottlenecks.push({
-        component: 'Error Handling',
-        type: 'error_rate',
-        impact: avgErrorRate * 100,
-        suggestion: `Improve error handling (current rate: ${(avgErrorRate * 100).toFixed(2)}%)`
-      });
-    }
-
-    return bottlenecks;
-  }
-
-  /**
-   * Forces cleanup of old metrics (primarily for testing)
-   */
-  forceCleanup(): void {
-    for (const [name] of this.metrics) {
-      this.cleanupOldMetrics(name);
-    }
-  }
-
-  /**
-   * Stops the cleanup interval (for testing cleanup)
-   */
-  stopCleanupInterval(): void {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = undefined;
-    }
-  }
-
-  private getDefaultThresholds(): PerformanceThreshold[] {
-    return [
-      {
-        metric: 'response_time',
-        warning: 1000, // 1 second
-        critical: 5000, // 5 seconds
-        action: 'log'
-      },
-      {
-        metric: 'memory_usage',
-        warning: 0.8, // 80%
-        critical: 0.95, // 95%
-        action: 'alert'
-      },
-      {
-        metric: 'error_rate',
-        warning: 0.05, // 5%
-        critical: 0.1, // 10%
-        action: 'throttle'
-      }
-    ];
-  }
-
-  private checkThreshold(metricName: string, value: number): void {
-    const threshold = this.config.thresholds.find(t => t.metric === metricName);
-    if (!threshold) return;
-
-    let severity: 'warning' | 'critical' | null = null;
-    
-    if (value >= threshold.critical) {
-      severity = 'critical';
-    } else if (value >= threshold.warning) {
-      severity = 'warning';
-    }
-
-    if (severity) {
-      const alert: PerformanceAlert = {
-        id: `${metricName}_${Date.now()}`,
-        metric: metricName,
-        threshold,
-        currentValue: value,
-        timestamp: new Date(),
-        severity,
-        context: { platform: this.platform }
-      };
-
-      this.alerts.push(alert);
-      
-      // Log the alert
-      console.warn(`Performance ${severity}: ${metricName} = ${value} (threshold: ${threshold[severity]})`);
-    }
-  }
-
-  private cleanupOldMetrics(metricName: string): void {
-    const metrics = this.metrics.get(metricName);
-    if (!metrics) return;
-
-    const cutoff = Date.now() - this.config.retentionPeriod;
-    const filtered = metrics.filter(m => m.timestamp.getTime() > cutoff);
-    
-    if (filtered.length !== metrics.length) {
-      this.metrics.set(metricName, filtered);
-    }
-  }
-
-  private startCleanupInterval(): void {
-    this.cleanupInterval = setInterval(() => {
-      for (const [name] of this.metrics) {
-        this.cleanupOldMetrics(name);
-      }
-    }, 60000); // Clean up every minute
-  }
-
-  private exportToCSV(): string {
-    const headers = ['name', 'type', 'value', 'timestamp', 'platform', 'context', 'tags'];
-    const rows = [headers.join(',')];
-    
-    for (const metrics of this.metrics.values()) {
-      for (const metric of metrics) {
-        const row = [
-          metric.name,
-          metric.type,
-          metric.value,
-          metric.timestamp.toISOString(),
-          metric.platform,
-          JSON.stringify(metric.context),
-          metric.tags.join(';')
-        ].map(field => `"${field}"`).join(',');
-        
-        rows.push(row);
-      }
-    }
-    
-    return rows.join('\n');
   }
 }

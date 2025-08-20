@@ -70,8 +70,8 @@ app.get('/devops-chat', (req, res) => {
         fileServed = true;
         break;
       }
-    } catch (error) {
-      console.log('Path check failed for:', filePath, error.message);
+    } catch (error: any) {
+      console.log('Path check failed for:', filePath, error?.message || String(error));
     }
   }
   

@@ -34,7 +34,7 @@ async function bootstrap() {
     await startWebServer(orchestrator);
     
     log('✨ Sherlock Ω IDE ready for development');
-    log('🔥 CYCLE 5 EVOLUTION IDE: http://localhost:3005');
+    log('🔥 CYCLE 5 EVOLUTION IDE: http://localhost:3000');
     
     // Register cleanup handlers
     processManager.registerCleanupHandler(async () => {
@@ -61,6 +61,18 @@ async function bootstrap() {
     process.exit(1);
   }
 }
+
+// Enhanced error handling
+process.on('uncaughtException', (err) => {
+  console.error('🚨 Uncaught Exception:', err);
+  console.error('Stack:', err.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🚨 Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
 
 async function initializeLogging(): Promise<void> {
   // Logging will be initialized by each component
@@ -121,8 +133,8 @@ async function startWebServer(orchestrator: any): Promise<void> {
   const { EnhancedIDEInterface } = await import('./web/enhanced-ide-interface');
   const { FullSherlockIDE } = await import('./web/full-ide');
   
-  // Start Enhanced IDE on port 3005
-  const enhancedIDE = new EnhancedIDEInterface(3005);
+  // Start Enhanced IDE on port 3000 (primary)
+  const enhancedIDE = new EnhancedIDEInterface(3000);
   await enhancedIDE.start();
   
   // Start Beast Mode IDE on port 3003
@@ -134,7 +146,7 @@ async function startWebServer(orchestrator: any): Promise<void> {
   (global as any).sherlockWebServer = enhancedIDE;
   (global as any).sherlockBeastServer = beastIDE;
   
-  console.log('[Bootstrap] 🌟 ENHANCED SHERLOCK Ω IDE: http://localhost:3005');
+  console.log('[Bootstrap] 🌟 ENHANCED SHERLOCK Ω IDE: http://localhost:3000');
   console.log('[Bootstrap] 🔥 BEAST MODE IDE: http://localhost:3003');
 }
 

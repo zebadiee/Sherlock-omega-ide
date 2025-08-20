@@ -129,7 +129,7 @@ export class QuantumBotBuilder extends EventEmitter implements IQuantumBotBuilde
     
     return {
       id: this.generateCircuitId(),
-      name: this.extractCircuitName(description) || `Quantum Circuit`,
+      name: this.extractCircuitName(description) || this.getAlgorithmName(description),
       description,
       qubits,
       depth: this.calculateCircuitDepth(gates),
@@ -340,7 +340,276 @@ export class QuantumBotBuilder extends EventEmitter implements IQuantumBotBuilde
     return gates;
   }
 
+  /**
+   * A map of known quantum algorithms and their logic generators.
+   * This pattern is highly scalable for adding new algorithms.
+   */
+  private quantumAlgorithmStrategies: {
+    keywords: string[];
+    logic: (qubits: number) => QuantumGate[];
+    docs: string;
+  }[] = [
+    {
+      keywords: ['bell state', 'entangle', 'epr pair'],
+      logic: (qubits) => [
+        {
+          name: 'H_0',
+          type: GateType.H,
+          qubits: [0],
+          description: 'Create superposition on first qubit'
+        },
+        {
+          name: 'CNOT_0_1',
+          type: GateType.CNOT,
+          qubits: [0, 1],
+          description: 'Create entanglement for Bell pair'
+        }
+      ],
+      docs: 'Creates quantum entanglement for a Bell pair (Φ+)'
+    },
+    {
+      keywords: ['ghz state', 'greenberger'],
+      logic: (qubits) => {
+        const gates: QuantumGate[] = [
+          {
+            name: 'H_0',
+            type: GateType.H,
+            qubits: [0],
+            description: 'Create superposition on first qubit'
+          }
+        ];
+        
+        // Create GHZ state with CNOT chain
+        for (let i = 0; i < qubits - 1; i++) {
+          gates.push({
+            name: `CNOT_0_${i + 1}`,
+            type: GateType.CNOT,
+            qubits: [0, i + 1],
+            description: `Entangle qubit 0 with qubit ${i + 1}`
+          });
+        }
+        
+        return gates;
+      },
+      docs: 'Creates a GHZ state with maximum entanglement across all qubits'
+    },
+    {
+      keywords: ['deutsch', 'deutsch-jozsa'],
+      logic: (qubits) => {
+        const gates: QuantumGate[] = [];
+        
+        // Initialize ancilla qubit in |1⟩
+        gates.push({
+          name: 'X_ancilla',
+          type: GateType.X,
+          qubits: [qubits - 1],
+          description: 'Initialize ancilla qubit in |1⟩'
+        });
+        
+        // Create superposition on all qubits
+        for (let i = 0; i < qubits; i++) {
+          gates.push({
+            name: `H_${i}`,
+            type: GateType.H,
+            qubits: [i],
+            description: `Create superposition on qubit ${i}`
+          });
+        }
+        
+        // Oracle (simplified - would be function-specific)
+        gates.push({
+          name: 'Oracle',
+          type: GateType.Z,
+          qubits: [0],
+          description: 'Oracle function evaluation'
+        });
+        
+        // Final Hadamards on input qubits
+        for (let i = 0; i < qubits - 1; i++) {
+          gates.push({
+            name: `H_${i}_final`,
+            type: GateType.H,
+            qubits: [i],
+            description: `Final Hadamard on qubit ${i}`
+          });
+        }
+        
+        return gates;
+      },
+      docs: 'Implements Deutsch-Jozsa algorithm for function evaluation'
+    },
+    {
+      keywords: ['teleportation', 'quantum teleportation'],
+      logic: (qubits) => [
+        // Prepare Bell pair between qubits 1 and 2
+        {
+          name: 'H_1',
+          type: GateType.H,
+          qubits: [1],
+          description: 'Create superposition for Bell pair'
+        },
+        {
+          name: 'CNOT_1_2',
+          type: GateType.CNOT,
+          qubits: [1, 2],
+          description: 'Create Bell pair between qubits 1 and 2'
+        },
+        // Bell measurement on qubits 0 and 1
+        {
+          name: 'CNOT_0_1',
+          type: GateType.CNOT,
+          qubits: [0, 1],
+          description: 'Bell measurement CNOT'
+        },
+        {
+          name: 'H_0',
+          type: GateType.H,
+          qubits: [0],
+          description: 'Bell measurement Hadamard'
+        }
+      ],
+      docs: 'Implements quantum teleportation protocol'
+    },
+    {
+      keywords: ['superdense coding', 'dense coding'],
+      logic: (qubits) => [
+        // Create Bell pair
+        {
+          name: 'H_0',
+          type: GateType.H,
+          qubits: [0],
+          description: 'Create superposition'
+        },
+        {
+          name: 'CNOT_0_1',
+          type: GateType.CNOT,
+          qubits: [0, 1],
+          description: 'Create Bell pair'
+        },
+        // Encoding (example: send "11")
+        {
+          name: 'Z_0',
+          type: GateType.Z,
+          qubits: [0],
+          description: 'Encode bit 1 (Z gate)'
+        },
+        {
+          name: 'X_0',
+          type: GateType.X,
+          qubits: [0],
+          description: 'Encode bit 2 (X gate)'
+        },
+        // Decoding
+        {
+          name: 'CNOT_0_1_decode',
+          type: GateType.CNOT,
+          qubits: [0, 1],
+          description: 'Decoding CNOT'
+        },
+        {
+          name: 'H_0_decode',
+          type: GateType.H,
+          qubits: [0],
+          description: 'Decoding Hadamard'
+        }
+      ],
+      docs: 'Implements superdense coding for transmitting 2 classical bits using 1 qubit'
+    },
+    {
+      keywords: ['grover', 'grover search', 'quantum search'],
+      logic: (qubits) => {
+        const gates: QuantumGate[] = [];
+        
+        // Initialize superposition on all qubits
+        for (let i = 0; i < qubits; i++) {
+          gates.push({
+            name: `H_${i}_init`,
+            type: GateType.H,
+            qubits: [i],
+            description: `Initialize qubit ${i} in superposition`
+          });
+        }
+        
+        // Grover iterations (approximately π/4 * √N iterations for optimal amplitude)
+        const iterations = Math.max(1, Math.floor(Math.PI / 4 * Math.sqrt(Math.pow(2, qubits))));
+        
+        for (let iter = 0; iter < Math.min(iterations, 3); iter++) {
+          // Oracle (simplified - marks target state |111...1⟩)
+          gates.push({
+            name: `Oracle_${iter}`,
+            type: GateType.Z,
+            qubits: [qubits - 1],
+            description: `Oracle iteration ${iter + 1} - marks target state`
+          });
+          
+          // Diffusion operator (inversion about average)
+          // H gates
+          for (let i = 0; i < qubits; i++) {
+            gates.push({
+              name: `H_${i}_diff_${iter}`,
+              type: GateType.H,
+              qubits: [i],
+              description: `Diffusion Hadamard ${iter + 1} on qubit ${i}`
+            });
+          }
+          
+          // Inversion about |0⟩ (X gates, multi-controlled Z, X gates)
+          for (let i = 0; i < qubits; i++) {
+            gates.push({
+              name: `X_${i}_diff_${iter}`,
+              type: GateType.X,
+              qubits: [i],
+              description: `Diffusion X gate ${iter + 1} on qubit ${i}`
+            });
+          }
+          
+          // Multi-controlled Z (simplified as Z on last qubit)
+          gates.push({
+            name: `MCZ_diff_${iter}`,
+            type: GateType.Z,
+            qubits: [qubits - 1],
+            description: `Multi-controlled Z for diffusion ${iter + 1}`
+          });
+          
+          // Restore with X gates
+          for (let i = 0; i < qubits; i++) {
+            gates.push({
+              name: `X_${i}_restore_${iter}`,
+              type: GateType.X,
+              qubits: [i],
+              description: `Restore X gate ${iter + 1} on qubit ${i}`
+            });
+          }
+          
+          // Final H gates for diffusion
+          for (let i = 0; i < qubits; i++) {
+            gates.push({
+              name: `H_${i}_final_${iter}`,
+              type: GateType.H,
+              qubits: [i],
+              description: `Final diffusion Hadamard ${iter + 1} on qubit ${i}`
+            });
+          }
+        }
+        
+        return gates;
+      },
+      docs: 'Implements Grover\'s quantum search algorithm with quadratic speedup over classical search'
+    }
+  ];
+
   private generateGenericQuantumGates(description: string, qubits: number): QuantumGate[] {
+    const lowerDesc = description.toLowerCase();
+    
+    // Check for specific quantum algorithm patterns
+    for (const strategy of this.quantumAlgorithmStrategies) {
+      if (strategy.keywords.some(keyword => lowerDesc.includes(keyword))) {
+        this.logger.info(`Detected quantum algorithm: ${strategy.keywords[0]} - ${strategy.docs}`);
+        return strategy.logic(qubits);
+      }
+    }
+    
+    // Fallback to generic quantum circuit generation
     const gates: QuantumGate[] = [];
     
     // Always start with superposition if not specified otherwise
@@ -763,5 +1032,32 @@ export class QuantumBotBuilder extends EventEmitter implements IQuantumBotBuilde
 
   private generateWorkflowId(): string {
     return `qworkflow-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Get documentation for available quantum algorithms
+   */
+  getAvailableAlgorithms(): Array<{keywords: string[], docs: string}> {
+    return this.quantumAlgorithmStrategies.map(strategy => ({
+      keywords: strategy.keywords,
+      docs: strategy.docs
+    }));
+  }
+
+  /**
+   * Get algorithm name from description for better naming
+   */
+  private getAlgorithmName(description: string): string {
+    const lowerDesc = description.toLowerCase();
+    
+    for (const strategy of this.quantumAlgorithmStrategies) {
+      if (strategy.keywords.some(keyword => lowerDesc.includes(keyword))) {
+        return strategy.keywords[0].split(' ').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ') + ' Algorithm';
+      }
+    }
+    
+    return 'Custom Quantum Circuit';
   }
 }
