@@ -10,6 +10,7 @@ import { Logger } from '../../logging/logger';
 import { PerformanceMonitor } from '../../monitoring/performance-monitor';
 import { PlatformType } from '../../types/core';
 import { AIBotManager } from '../ai-bot-manager';
+import { BlueprintSuggestion } from '../bot-builder/interfaces';
 import * as readline from 'readline';
 
 const program = new Command();
@@ -37,11 +38,13 @@ program
   .option('-q, --quantum', 'Create a quantum-enhanced bot')
   .action(async (description, options) => {
     try {
+      let generatedBot: any; // Declare variable at function scope
+      
       if (options.quantum) {
         console.log('⚛️ Creating quantum-enhanced bot from description...');
         console.log(`Description: ${description}\n`);
 
-        const generatedBot = await botManager.createQuantumBot(description);
+        generatedBot = await botManager.createQuantumBot(description);
         
         console.log('✅ Quantum bot created successfully!');
         console.log(`Name: ${generatedBot.blueprint.name}`);
@@ -54,7 +57,7 @@ program
         console.log('🤖 Creating bot from description...');
         console.log(`Description: ${description}\n`);
 
-        const generatedBot = await botManager.createBotFromDescription(description);
+        generatedBot = await botManager.createBotFromDescription(description);
         
         console.log('✅ Bot created successfully!');
         console.log(`Name: ${generatedBot.blueprint.name}`);
@@ -73,7 +76,7 @@ program
       }
 
       console.log('\nSuggestions:');
-      generatedBot.blueprint.suggestions.forEach(suggestion => {
+      generatedBot.blueprint.suggestions.forEach((suggestion: BlueprintSuggestion) => {
         console.log(`  💡 ${suggestion.message}`);
       });
 
@@ -137,7 +140,7 @@ program
         
         if (response.suggestions.length > 0) {
           console.log('\nSuggestions:');
-          response.suggestions.forEach(suggestion => {
+          response.suggestions.forEach((suggestion: string) => {
             console.log(`  💡 ${suggestion}`);
           });
         }

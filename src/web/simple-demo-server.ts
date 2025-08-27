@@ -204,7 +204,8 @@ app.post('/api/devops/command', async (req, res) => {
     const { command, sessionId, forceReal = false } = req.body;
     
     if (!sessionId) {
-      return res.status(400).json({ success: false, error: 'Session ID required' });
+      res.status(400).json({ success: false, error: 'Session ID required' });
+      return;
     }
 
     const response = await devopsChat.executeCommand({
@@ -324,7 +325,8 @@ app.get('/api/bots/:botId', (req, res) => {
   try {
     const bot = botRegistry.getBot(req.params.botId);
     if (!bot) {
-      return res.status(404).json({ success: false, error: 'Bot not found' });
+      res.status(404).json({ success: false, error: 'Bot not found' });
+      return;
     }
     
     res.json({ success: true, bot });

@@ -327,8 +327,8 @@ export class DevOpsChatService extends EventEmitter {
     this.emitStream(executionId, '📜 Retrieving system logs...', 'info');
     await this.delay(400);
 
-    const logCount = command.parameters.count || 10;
-    const level = command.parameters.level || 'all';
+    const logCount = command.parameters?.count || 10;
+    const level = command.parameters?.level || 'all';
 
     this.emitStream(executionId, `\n📋 Last ${logCount} log entries (${level} level):`, 'info');
     
@@ -342,8 +342,10 @@ export class DevOpsChatService extends EventEmitter {
 
     for (let i = 0; i < Math.min(logCount, sampleLogs.length); i++) {
       const log = sampleLogs[i];
-      const emoji = log.level === 'ERROR' ? '❌' : log.level === 'WARN' ? '⚠️' : 'ℹ️';
-      this.emitStream(executionId, `   ${emoji} [${log.time}] ${log.level}: ${log.message}`, 'info');
+      if (log && log.level && log.time && log.message) {
+        const emoji = log.level === 'ERROR' ? '❌' : log.level === 'WARN' ? '⚠️' : 'ℹ️';
+        this.emitStream(executionId, `   ${emoji} [${log.time}] ${log.level}: ${log.message}`, 'info');
+      }
     }
 
     return `📜 Retrieved ${Math.min(logCount, sampleLogs.length)} log entries`;
@@ -400,8 +402,19 @@ export class DevOpsChatService extends EventEmitter {
   private updateMessage(messageId: string, updates: Partial<ChatMessage>): void {
     const index = this.messageHistory.findIndex(m => m.id === messageId);
     if (index !== -1) {
-      this.messageHistory[index] = { ...this.messageHistory[index], ...updates };
-      this.messages.next([...this.messageHistory]);
+      // Ensure we don't overwrite required properties with undefined
+      const currentMessage = this.messageHistory[index];
+      if (currentMessage) {
+        const safeUpdates = {
+          ...updates,
+          id: updates.id || currentMessage.id, // Preserve ID if not provided
+          type: updates.type || currentMessage.type,
+          content: updates.content !== undefined ? updates.content : currentMessage.content,
+          timestamp: updates.timestamp || currentMessage.timestamp
+        };
+        this.messageHistory[index] = { ...currentMessage, ...safeUpdates };
+        this.messages.next([...this.messageHistory]);
+      }
     }
   }
 

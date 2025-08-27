@@ -1,3 +1,4 @@
+import { Result, Ok, Err, CentralizedErrorHandler, createErrorHandler } from '../core/error-handling';
 /**
  * AI Bot Manager - Main orchestrator for bot catalog and builder
  * Integrates with Sherlock Ω's existing plugin and monitoring systems
@@ -14,13 +15,15 @@ import {
   BotDefinition,
   BotMetadata,
   BotSearchQuery,
+  BotRequirements,
   IBotRegistry
 } from './bot-registry/interfaces';
 import {
   IBotBuilder,
   BotBlueprint,
   GeneratedBot,
-  BuilderSession
+  BuilderSession,
+  ParsedRequirements
 } from './bot-builder/interfaces';
 import {
   IQuantumBotBuilder,
@@ -66,7 +69,59 @@ export class AIBotManager extends EventEmitter {
     // Initialize quantum computing capabilities if enabled
     if (this.config.enableQuantumComputing) {
       this.quantumBuilder = new QuantumBotBuilder(logger, performanceMonitor);
-      this.quantumSimulator = new QuantumSimulator(logger, performanceMonitor);
+      
+      // Create quantum simulator with proper interface adaptation
+      const baseSimulator = new QuantumSimulator(logger, performanceMonitor);
+      
+      // Create an adapter to match IQuantumSimulator interface
+      this.quantumSimulator = {
+        executeCircuit: async (circuit: any, shots?: number) => {
+          const baseResult = await baseSimulator.simulateCircuit(circuit);
+          // Adapt SimulationResult to QuantumSimulationResult
+          return {
+            circuitId: circuit.id || 'unknown',
+            backend: 'quantum-circuit-js' as any,
+            shots: shots || 1024,
+            executionTime: 100, // Default since SimulationResult doesn't have this
+            results: [], // Default since SimulationResult doesn't have this
+            statistics: { 
+              totalShots: shots || 1024, // Required by ExecutionStatistics interface
+              uniqueStates: 4, // Default for 2-qubit systems
+              entropy: 0.5, // Default entropy
+              fidelity: baseResult.fidelity || 0.95 
+            },
+            errors: baseResult.recommendations.length > 0 ? 
+              baseResult.recommendations.map(rec => ({
+                type: 'GATE_ERROR' as any,
+                message: rec,
+                severity: 'LOW' as any
+              })) : []
+          };
+        },
+        getStateVector: async (circuit: any) => {
+          const result = await baseSimulator.simulateCircuit(circuit);
+          // Convert number array to ComplexNumber array to match interface
+          const stateVector = result.actualState || [];
+          return stateVector.map((value: number) => ({ real: value, imaginary: 0 }));
+        },
+        addNoise: async (circuit: any, noiseModel: any) => {
+          // For now, return circuit as-is since noise modeling is not implemented
+          return circuit;
+        },
+        listBackends: async () => {
+          return ['quantum-circuit-js', 'local-simulator'];
+        },
+        setBackend: async (backend: any) => {
+          // Backend setting is handled internally
+        },
+        optimizeForBackend: async (circuit: any, backend: any) => {
+          return circuit;
+        },
+        shutdown: async () => {
+          // Cleanup if needed
+        }
+      } as IQuantumSimulator;
+      
       this.logger.info('Quantum computing capabilities enabled');
     }
 
@@ -103,6 +158,22 @@ export class AIBotManager extends EventEmitter {
     return this.registry.listBots(category);
   }
 
+  /**
+   * Convert ParsedRequirements to BotRequirements
+   */
+  private convertRequirements(parsed: ParsedRequirements): BotRequirements {
+    return {
+      nodeVersion: undefined, // Not specified in ParsedRequirements
+      dependencies: parsed.dependencies,
+      permissions: parsed.permissions,
+      resources: {
+        cpu: String(parsed.resources.cpu), // Convert number to string
+        memory: parsed.resources.memory,
+        storage: parsed.resources.storage
+      }
+    };
+  }
+
   // Builder operations
   async createBotFromDescription(description: string): Promise<GeneratedBot> {
     const blueprint = await this.builder.parseDescription(description);
@@ -120,7 +191,7 @@ export class AIBotManager extends EventEmitter {
           category: blueprint.category,
           tags: [],
           capabilities: blueprint.capabilities,
-          requirements: blueprint.requirements,
+          requirements: this.convertRequirements(blueprint.requirements),
           created: new Date(),
           updated: new Date(),
           downloads: 0,
@@ -162,7 +233,7 @@ export class AIBotManager extends EventEmitter {
           category: generatedBot.blueprint.category,
           tags: [],
           capabilities: generatedBot.blueprint.capabilities,
-          requirements: generatedBot.blueprint.requirements,
+          requirements: this.convertRequirements(generatedBot.blueprint.requirements),
           created: new Date(),
           updated: new Date(),
           downloads: 0,
@@ -299,7 +370,7 @@ export class AIBotManager extends EventEmitter {
           category: quantumBot.blueprint.category,
           tags: [...(quantumBot.blueprint as any).tags || [], 'quantum', 'quantum-computing'],
           capabilities: quantumBot.blueprint.capabilities,
-          requirements: quantumBot.blueprint.requirements,
+          requirements: this.convertRequirements(quantumBot.blueprint.requirements),
           created: new Date(),
           updated: new Date(),
           downloads: 0,

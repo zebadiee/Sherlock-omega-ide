@@ -104,13 +104,13 @@ export class BlueprintProcessor {
 
   private extractTitle(content: string): string {
     const match = content.match(/^#\s+Blueprint:\s*(.+)$/m);
-    return match ? match[1].trim() : 'Untitled Application';
+    return match && match[1] ? match[1].trim() : 'Untitled Application';
   }
 
   private extractSection(content: string, sectionName: string): string {
     const regex = new RegExp(`##\\s+\\d+\\.\\s+${sectionName}\\s*\\n([\\s\\S]*?)(?=\\n##|$)`, 'i');
     const match = content.match(regex);
-    return match ? match[1].trim() : '';
+    return match && match[1] ? match[1].trim() : '';
   }
 
   private extractFeatures(content: string): BlueprintFeature[] {
@@ -154,7 +154,7 @@ export class BlueprintProcessor {
     const regex = new RegExp(`\\*\\*${category}:\\*\\*\\s*([^\\n]+)`, 'i');
     const match = content.match(regex);
     
-    if (match) {
+    if (match && match[1]) {
       return match[1].split(',').map(item => item.trim());
     }
     
@@ -247,12 +247,15 @@ export class BlueprintProcessor {
     // Generate basic data flow connections
     components.forEach((component, index) => {
       if (index < components.length - 1) {
-        connections.push({
-          from: component.id,
-          to: components[index + 1].id,
-          dataType: 'request',
-          description: `${component.name} to ${components[index + 1].name}`
-        });
+        const nextComponent = components[index + 1];
+        if (nextComponent) {
+          connections.push({
+            from: component.id,
+            to: nextComponent.id,
+            dataType: 'request',
+            description: `${component.name} to ${nextComponent.name}`
+          });
+        }
       }
     });
 

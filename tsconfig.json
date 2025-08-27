@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "commonjs",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
@@ -20,17 +23,43 @@
     "jsx": "react-jsx",
     "baseUrl": "./src",
     "paths": {
-      "@core/*": ["core/*"],
-      "@sensors/*": ["sensors/*"],
-      "@healing/*": ["healing/*"],
-      "@intent/*": ["intent/*"],
-      "@verification/*": ["verification/*"],
-      "@monitoring/*": ["monitoring/*"],
-      "@github/*": ["github/*"],
-      "@ui/*": ["ui/*"],
-      "@types/*": ["types/*"],
-      "@utils/*": ["utils/*"]
-    }
+      "@core/*": [
+        "core/*"
+      ],
+      "@sensors/*": [
+        "sensors/*"
+      ],
+      "@healing/*": [
+        "healing/*"
+      ],
+      "@intent/*": [
+        "intent/*"
+      ],
+      "@verification/*": [
+        "verification/*"
+      ],
+      "@monitoring/*": [
+        "monitoring/*"
+      ],
+      "@github/*": [
+        "github/*"
+      ],
+      "@ui/*": [
+        "ui/*"
+      ],
+      "@types/*": [
+        "types/*"
+      ],
+      "@utils/*": [
+        "utils/*"
+      ]
+    },
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": [
     "src/**/*"

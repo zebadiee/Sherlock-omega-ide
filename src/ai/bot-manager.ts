@@ -108,7 +108,7 @@ export class BotManager {
       return true;
       
     } catch (error) {
-      this.logger.error(`❌ Replication failed for bot ${botId}:`, {}, error as Error);
+      this.logger.error(`❌ Replication failed for bot ${botId}: ${(error as Error).message}`, {});
       return false;
     }
   }
@@ -145,7 +145,7 @@ export class BotManager {
         await new Promise(resolve => setTimeout(resolve, 5000));
         
       } catch (error) {
-        this.logger.error('❌ Error in autonomous loop:', {}, error as Error);
+        this.logger.error(`❌ Error in autonomous loop: ${(error as Error).message}`, {});
         await new Promise(resolve => setTimeout(resolve, 10000)); // Longer wait on error
       }
     }
@@ -209,7 +209,7 @@ export class BotManager {
       
       const evolutionPromises = Array.from(this.colony.bots.values()).map(bot => 
         bot.evolve().catch(error => 
-          this.logger.warn(`Evolution failed for bot ${bot.getStatus().botId}:`, {}, error as Error)
+          this.logger.warn(`Evolution failed for bot ${bot.getStatus().botId}: ${(error as Error).message}`, {})
         )
       );
       
@@ -228,7 +228,8 @@ export class BotManager {
     
     // For now, return the first available bot
     // In the future, could implement more sophisticated selection
-    return availableBots[0];
+    const firstBot = availableBots[0];
+    return firstBot || null; // Ensure we return null instead of undefined
   }
 
   /**

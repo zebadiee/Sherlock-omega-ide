@@ -485,7 +485,7 @@ export class ContextAnalyzer {
 
     // Assignment
     const assignmentMatch = beforeCursor.match(/(\w+)\s*=\s*$/);
-    if (assignmentMatch) {
+    if (assignmentMatch && assignmentMatch[1]) {
       // Try to infer type from variable declaration
       return this.inferVariableType(lines, assignmentMatch[1], position);
     }
@@ -512,7 +512,9 @@ export class ContextAnalyzer {
     let match;
 
     while ((match = importRegex.exec(content)) !== null) {
-      imports.push(match[1]);
+      if (match[1]) {
+        imports.push(match[1]);
+      }
     }
 
     return imports;
@@ -525,13 +527,15 @@ export class ContextAnalyzer {
     let match;
 
     while ((match = functionRegex.exec(content)) !== null) {
-      functions.push({
-        name: match[1],
-        parameters: [], // Would be extracted from AST
-        returnType: 'unknown',
-        startLine: content.substring(0, match.index).split('\n').length - 1,
-        endLine: 0 // Would be calculated from AST
-      });
+      if (match[1] && match.index !== undefined) {
+        functions.push({
+          name: match[1],
+          parameters: [], // Would be extracted from AST
+          returnType: 'unknown',
+          startLine: content.substring(0, match.index).split('\n').length - 1,
+          endLine: 0 // Would be calculated from AST
+        });
+      }
     }
 
     return functions;
@@ -544,14 +548,16 @@ export class ContextAnalyzer {
     let match;
 
     while ((match = variableRegex.exec(content)) !== null) {
-      const line = content.substring(0, match.index).split('\n').length - 1;
-      if (line <= position.line) {
-        variables.push({
-          name: match[2],
-          type: 'unknown',
-          scope: 'local',
-          line
-        });
+      if (match.index !== undefined) {
+        const line = content.substring(0, match.index).split('\n').length - 1;
+        if (line <= position.line && match[2]) {
+          variables.push({
+            name: match[2],
+            type: 'unknown',
+            scope: 'local',
+            line
+          });
+        }
       }
     }
 
@@ -593,10 +599,10 @@ export class ContextAnalyzer {
     // Look backwards for function declaration
     for (let i = position.line; i >= 0; i--) {
       const line = lines[i];
-      if (line.match(/function\s+\w+|=>\s*{|\w+\s*\([^)]*\)\s*{/)) {
+      if (line && line.match(/function\s+\w+|=>\s*{|\w+\s*\([^)]*\)\s*{/)) {
         return true;
       }
-      if (line.includes('}') && !line.includes('{')) {
+      if (line && line.includes('}') && !line.includes('{')) {
         return false;
       }
     }
@@ -607,7 +613,7 @@ export class ContextAnalyzer {
     // Look backwards for class declaration
     for (let i = position.line; i >= 0; i--) {
       const line = lines[i];
-      if (line.match(/class\s+\w+/)) {
+      if (line && line.match(/class\s+\w+/)) {
         return true;
       }
     }
@@ -618,8 +624,10 @@ export class ContextAnalyzer {
     let braceCount = 0;
     for (let i = position.line; i >= 0; i--) {
       const line = lines[i];
-      braceCount += (line.match(/{/g) || []).length;
-      braceCount -= (line.match(/}/g) || []).length;
+      if (line) {
+        braceCount += (line.match(/{/g) || []).length;
+        braceCount -= (line.match(/}/g) || []).length;
+      }
     }
     return braceCount > 0;
   }
@@ -636,7 +644,7 @@ export class ContextAnalyzer {
 
   private getIndentationLevel(line: string): number {
     const match = line.match(/^(\s*)/);
-    return match ? match[1].length : 0;
+    return match && match[1] ? match[1].length : 0;
   }
 
   private parseImportedModules(content: string): ImportInfo[] {
@@ -645,14 +653,14 @@ export class ContextAnalyzer {
     let match;
 
     while ((match = importRegex.exec(content)) !== null) {
-      if (match[1]) {
+      if (match[1] && match[3]) {
         // Default import
         imports.push({
           module: match[3],
           imports: [match[1]],
           isDefault: true
         });
-      } else if (match[2]) {
+      } else if (match[2] && match[3]) {
         // Named imports
         const namedImports = match[2].split(',').map(imp => imp.trim());
         imports.push({

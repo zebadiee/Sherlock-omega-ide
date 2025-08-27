@@ -148,6 +148,10 @@ export class CostAwareAIOrchestrator {
     }
 
     const selected = candidates[0];
+    if (!selected) {
+      throw new Error('No model selected from candidates');
+    }
+    
     this.logger.info(`✅ Selected model: ${selected.modelId} (score: ${selected.score.toFixed(2)}, estimated cost: $${selected.estimatedCost.toFixed(4)})`);
 
     return selected.modelId;
@@ -328,6 +332,10 @@ export class CostAwareAIOrchestrator {
 
     const cheapest = recommendations[0];
     const recommended = recommendations.sort((a, b) => b.score - a.score)[0];
+    
+    if (!recommended) {
+      throw new Error('No recommended model found');
+    }
 
     return {
       requestId: request.id,
@@ -340,8 +348,8 @@ export class CostAwareAIOrchestrator {
         costPerToken: (recommended.costInfo.inputCostPer1k + recommended.costInfo.outputCostPer1k) / 1000
       }],
       recommendations: {
-        alternativeModel: cheapest.modelId !== recommended.modelId ? cheapest.modelId : undefined,
-        potentialSavings: cheapest.modelId !== recommended.modelId ? 
+        alternativeModel: cheapest && cheapest.modelId !== recommended.modelId ? cheapest.modelId : undefined,
+        potentialSavings: cheapest && cheapest.modelId !== recommended.modelId ? 
           recommended.estimatedCost - cheapest.estimatedCost : 0,
         reasonForRecommendation: 'Balanced cost, performance, and capability match'
       },

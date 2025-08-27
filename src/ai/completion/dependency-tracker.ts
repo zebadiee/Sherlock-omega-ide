@@ -322,7 +322,7 @@ export class DependencyTracker {
       if (!importClause) {
         // Side-effect import: import 'module'
         imports.push({
-          module: modulePath,
+          module: modulePath || '',
           type: ImportType.LIBRARY,
           symbols: [],
           raw: match[0]
@@ -330,8 +330,8 @@ export class DependencyTracker {
       } else {
         const symbols = this.parseImportClause(importClause);
         imports.push({
-          module: modulePath,
-          type: this.classifyImportType(modulePath),
+          module: modulePath || '',
+          type: this.classifyImportType(modulePath || ''),
           symbols,
           raw: match[0]
         });
@@ -343,11 +343,11 @@ export class DependencyTracker {
     while ((match = requireRegex.exec(content)) !== null) {
       const variableClause = match[1];
       const modulePath = match[2];
-      const symbols = this.parseRequireClause(variableClause);
+      const symbols = this.parseRequireClause(variableClause || '');
 
       imports.push({
-        module: modulePath,
-        type: this.classifyImportType(modulePath),
+        module: modulePath || '',
+        type: this.classifyImportType(modulePath || ''),
         symbols,
         raw: match[0]
       });
@@ -361,7 +361,7 @@ export class DependencyTracker {
     
     // Default import: import React from 'react'
     const defaultMatch = clause.match(/^\s*(\w+)\s*$/);
-    if (defaultMatch) {
+    if (defaultMatch && defaultMatch[1]) {
       symbols.push({
         name: defaultMatch[1],
         type: 'default'
@@ -371,7 +371,7 @@ export class DependencyTracker {
 
     // Namespace import: import * as React from 'react'
     const namespaceMatch = clause.match(/^\s*\*\s+as\s+(\w+)\s*$/);
-    if (namespaceMatch) {
+    if (namespaceMatch && namespaceMatch[1]) {
       symbols.push({
         name: namespaceMatch[1],
         type: 'namespace'
@@ -381,13 +381,13 @@ export class DependencyTracker {
 
     // Named imports: import { Component, useState } from 'react'
     const namedMatch = clause.match(/\{\s*([^}]+)\s*\}/);
-    if (namedMatch) {
+    if (namedMatch && namedMatch[1]) {
       const namedImports = namedMatch[1].split(',');
       for (const namedImport of namedImports) {
         const trimmed = namedImport.trim();
         const aliasMatch = trimmed.match(/(\w+)\s+as\s+(\w+)/);
         
-        if (aliasMatch) {
+        if (aliasMatch && aliasMatch[1]) {
           symbols.push({
             name: aliasMatch[1],
             alias: aliasMatch[2],
@@ -404,7 +404,7 @@ export class DependencyTracker {
 
     // Mixed import: import React, { Component } from 'react'
     const mixedMatch = clause.match(/^\s*(\w+)\s*,\s*\{\s*([^}]+)\s*\}\s*$/);
-    if (mixedMatch) {
+    if (mixedMatch && mixedMatch[1] && mixedMatch[2]) {
       symbols.push({
         name: mixedMatch[1],
         type: 'default'
@@ -427,7 +427,7 @@ export class DependencyTracker {
     
     // Destructuring: const { readFile, writeFile } = require('fs')
     const destructureMatch = clause.match(/\{\s*([^}]+)\s*\}/);
-    if (destructureMatch) {
+    if (destructureMatch && destructureMatch[1]) {
       const destructuredVars = destructureMatch[1].split(',');
       for (const variable of destructuredVars) {
         symbols.push({
@@ -438,7 +438,7 @@ export class DependencyTracker {
     } else {
       // Simple assignment: const fs = require('fs')
       const simpleMatch = clause.match(/^\s*(\w+)\s*$/);
-      if (simpleMatch) {
+      if (simpleMatch && simpleMatch[1]) {
         symbols.push({
           name: simpleMatch[1],
           type: 'default'
@@ -523,7 +523,7 @@ export class DependencyTracker {
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      if (line.includes(name) && !line.includes('import') && !line.includes('require')) {
+      if (line && line.includes(name) && !line.includes('import') && !line.includes('require')) {
         contexts.push(line.trim());
       }
     }
@@ -622,7 +622,9 @@ export class DependencyTracker {
     let match;
     
     while ((match = undefinedRegex.exec(code)) !== null) {
-      symbols.push(match[1]);
+      if (match[1]) {
+        symbols.push(match[1]);
+      }
     }
     
     return [...new Set(symbols)];

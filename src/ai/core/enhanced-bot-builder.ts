@@ -71,12 +71,12 @@ export class EnhancedBotBuilder extends EventEmitter implements IBotBuilder {
       });
 
       // Create bot instance
-      const bot = this.createBotInstance(analysis.name, description, botCode, analysis.isQuantum);
+      const bot = await this.createBotInstance(analysis.name, description, botCode, analysis.isQuantum);
       
-      this.logger.info(`Bot built successfully: ${bot.name}`);
-      this.emit('bot-built', { bot, description });
+      this.logger.info(`Bot built successfully: ${(await bot).name}`);
+      this.emit('bot-built', { bot: await bot, description });
       
-      return bot;
+      return await bot;
     });
   }
 

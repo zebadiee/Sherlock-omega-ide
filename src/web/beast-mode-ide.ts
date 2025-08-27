@@ -171,6 +171,12 @@ export class BeastModeSherlockIDE {
       try {
         const { command } = JSON.parse(body);
         const terminalId = url.split('/')[3];
+        if (!terminalId) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid terminal ID' }));
+          return;
+        }
+        
         const terminal = this.terminals.get(terminalId);
         
         if (!terminal) {
@@ -180,8 +186,8 @@ export class BeastModeSherlockIDE {
         }
 
         const stdin = terminal.stdin ?? process.stdin;
-        if (stdin && 'write' in stdin) {
-          stdin.write(command + '\n');
+        if (stdin && 'write' in stdin && typeof stdin.write === 'function') {
+          (stdin.write as any)(command + '\n');
         }
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true }));

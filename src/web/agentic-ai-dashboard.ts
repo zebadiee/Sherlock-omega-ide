@@ -95,9 +95,9 @@ export class AgenticAIDashboard {
         // Emit real-time update
         this.io.emit('query-processed', { query, result });
 
-        res.json(result);
+        return res.json(result);
       } catch (error) {
-        res.status(500).json({ error: (error as Error).message });
+        return res.status(500).json({ error: (error as Error).message });
       }
     });
 

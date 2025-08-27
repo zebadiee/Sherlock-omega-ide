@@ -149,7 +149,11 @@ export class AutonomousCompiler {
       
       // Apply the change
       if (change.type === 'create') {
-        fs.writeFileSync(filePath, change.content);
+        if (change.content) {
+          fs.writeFileSync(filePath, change.content);
+        } else {
+          this.logger.warn(`Skipping create change for ${filePath} - no content provided`);
+        }
       } else if (change.type === 'modify') {
         const existingContent = fs.readFileSync(filePath, 'utf8');
         const modifiedContent = this.applyModification(existingContent, change);
@@ -166,7 +170,11 @@ export class AutonomousCompiler {
         fs.mkdirSync(dir, { recursive: true });
       }
       
-      fs.writeFileSync(testPath, testChange.content);
+      if (testChange.content) {
+        fs.writeFileSync(testPath, testChange.content);
+      } else {
+        this.logger.warn(`Skipping test change for ${testPath} - no content provided`);
+      }
     }
     
     this.logger.info('✅ Feature applied to sandbox');

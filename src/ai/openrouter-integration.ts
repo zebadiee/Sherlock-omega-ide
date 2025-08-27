@@ -64,7 +64,7 @@ export class OpenRouterAI {
       };
     } catch (error) {
       console.error('OpenRouter request failed:', error);
-      throw new Error(`AI request failed: ${error.message}`);
+      throw new Error(`AI request failed: ${(error as Error).message}`);
     }
   }
 
@@ -263,7 +263,7 @@ You are explaining programming concepts. Provide:
     else if (prompt.includes('user')) baseName = 'user';
     else if (prompt.includes('todo')) baseName = 'todo';
 
-    const extensions = {
+    const extensions: Record<string, string> = {
       'javascript': '.js',
       'typescript': '.ts',
       'python': '.py',
@@ -273,7 +273,7 @@ You are explaining programming concepts. Provide:
       'json': '.json'
     };
 
-    return baseName + (extensions[language] || '.js');
+    return baseName + (language && extensions[language] ? extensions[language] : '.js');
   }
 
   /**

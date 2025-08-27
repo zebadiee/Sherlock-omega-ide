@@ -23,8 +23,14 @@ import { AIBotManager } from './ai-bot-manager';
 const AgenticState = Annotation.Root({
   task: Annotation<string>(),
   naturalLanguageQuery: Annotation<string>(),
-  subtasks: Annotation<string[]>({ default: [] }),
-  currentSubtask: Annotation<number>({ default: 0 }),
+  subtasks: Annotation<string[]>({
+    reducer: (a: string[], b: string[]) => [...a, ...b],
+    default: () => []
+  }),
+  currentSubtask: Annotation<number>({
+    reducer: (a: number, b: number) => b,
+    default: () => 0
+  }),
   code: Annotation<string | null>(),
   analysis: Annotation<{
     vulnerabilities: string[];
@@ -34,14 +40,32 @@ const AgenticState = Annotation.Root({
     testCoverage: number;
   } | null>(),
   optimizations: Annotation<string[] | null>(),
-  feedback: Annotation<string[]>({ default: [] }),
-  llmReasoning: Annotation<string[]>({ default: [] }),
-  agentCollaboration: Annotation<any[]>({ default: [] }),
-  userSatisfaction: Annotation<number>({ default: 5 }),
+  feedback: Annotation<string[]>({
+    reducer: (a: string[], b: string[]) => [...a, ...b],
+    default: () => []
+  }),
+  llmReasoning: Annotation<string[]>({
+    reducer: (a: string[], b: string[]) => [...a, ...b],
+    default: () => []
+  }),
+  agentCollaboration: Annotation<any[]>({
+    reducer: (a: any[], b: any[]) => [...a, ...b],
+    default: () => []
+  }),
+  userSatisfaction: Annotation<number>({
+    reducer: (a: number, b: number) => b,
+    default: () => 5
+  }),
   iterations: Annotation<number>({ reducer: (a, b) => a + b }),
-  errors: Annotation<string[]>({ default: [] }),
+  errors: Annotation<string[]>({
+    reducer: (a: string[], b: string[]) => [...a, ...b],
+    default: () => []
+  }),
   snapshot: Annotation<string | null>(),
-  deploymentReady: Annotation<boolean>({ default: false })
+  deploymentReady: Annotation<boolean>({
+    reducer: (a: boolean, b: boolean) => b,
+    default: () => false
+  })
 });
 
 // Schemas for LLM-driven validation
@@ -364,7 +388,7 @@ export class AgenticAIEvolutionManager extends UltraPolishedEvolutionManager {
     super(logger, performanceMonitor, quantumBuilder, botManager, mongoUri);
     
     this.initializeAgenticWorkflow();
-    this.logger.info('Agentic AI Evolution Manager initialized with LLM-driven agents');
+    logger.info('Agentic AI Evolution Manager initialized with LLM-driven agents');
   }
 
   private initializeAgenticWorkflow(): void {
@@ -385,15 +409,9 @@ export class AgenticAIEvolutionManager extends UltraPolishedEvolutionManager {
         error: '__end__'
       })
       .compile({
-        checkpointer: {
-          get: async (threadId: string) => {
-            // Implement state persistence
-            return null;
-          },
-          put: async (checkpoint: any) => {
-            // Implement state saving
-          }
-        }
+        // Disable checkpointer for now to avoid interface mismatch
+        // TODO: Implement proper BaseCheckpointSaver interface when needed
+        checkpointer: false
       });
   }
 
@@ -411,7 +429,8 @@ export class AgenticAIEvolutionManager extends UltraPolishedEvolutionManager {
     const spinner = ora('Processing natural language query with AI agents...').start();
     
     try {
-      this.logger.info(`Processing natural language query: ${query}`);
+      // Process natural language query with AI agents
+      console.log(`Processing natural language query: ${query}`);
       
       // Store conversation history
       this.conversationHistory.push({
@@ -448,7 +467,7 @@ export class AgenticAIEvolutionManager extends UltraPolishedEvolutionManager {
 
     } catch (error) {
       spinner.fail(chalk.red('AI agent processing failed'));
-      this.logger.error('Natural language processing failed:', error);
+      console.error('Natural language processing failed:', error);
       throw error;
     }
   }
@@ -624,7 +643,7 @@ export class AgenticAIEvolutionManager extends UltraPolishedEvolutionManager {
   private async logAgenticResult(query: string, result: any): Promise<void> {
     try {
       // Log to health system
-      await this.logHealthEvent({
+      await this.logAgenticHealthEvent({
         timestamp: new Date().toISOString(),
         type: 'agentic_processing',
         query,
@@ -634,7 +653,25 @@ export class AgenticAIEvolutionManager extends UltraPolishedEvolutionManager {
         deploymentReady: result.deploymentReady || false
       });
     } catch (error) {
-      this.logger.error('Failed to log agentic result:', error);
+      console.error('Failed to log agentic result:', error);
+    }
+  }
+
+  /**
+   * Log agentic health events with console fallback
+   */
+  private async logAgenticHealthEvent(event: any): Promise<void> {
+    try {
+      // Try to use parent's health logging if available
+      if (typeof (this as any).logHealthEvent === 'function') {
+        await (this as any).logHealthEvent(event);
+      } else {
+        // Fallback to console logging
+        console.log('Agentic Health Event:', JSON.stringify(event, null, 2));
+      }
+    } catch (error) {
+      // Final fallback to console
+      console.log('Agentic Event (fallback):', event.type, event.success ? 'SUCCESS' : 'FAILED');
     }
   }
 

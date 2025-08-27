@@ -96,10 +96,11 @@ class ProductionServer {
     this.app.post('/api/evolution/start', async (req, res) => {
       try {
         if (process.env.EVOLUTION_MODE === 'manual') {
-          return res.status(403).json({ 
+          res.status(403).json({ 
             error: 'Evolution disabled in manual mode',
             mode: 'manual'
           });
+          return;
         }
 
         const result = await this.evolutionController.initiateEvolutionCycle();

@@ -16,8 +16,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:unit": "jest --testPathPattern=__tests__",
-    "test:integration": "jest --testPathPattern=integration",
+    "test:unit": "jest --config jest.config.enterprise.js --selectProjects unit",
+    "test:integration": "jest --config jest.config.enterprise.js --selectProjects integration",
     "test:formal-verification": "jest --testPathPattern=verification",
     "test:quantum": "jest --testPathPattern=\"quantum|enhanced\"",
     "lint": "eslint src/**/*.ts",
@@ -115,7 +115,55 @@
     "agentic:dashboard": "ts-node src/web/agentic-ai-dashboard.ts",
     "demo:agentic-poc": "ts-node src/examples/agentic-ai-poc-demo.ts",
     "demo:stakeholder": "ts-node src/examples/agentic-ai-poc-demo.ts stakeholder",
-    "demo:technical": "ts-node src/examples/agentic-ai-poc-demo.ts technical"
+    "demo:technical": "ts-node src/examples/agentic-ai-poc-demo.ts technical",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
+    "lint:errors": "eslint src/**/*.ts --quiet",
+    "validate:all": "npm run type-check && npm run lint:errors && npm test",
+    "config:oauth": "ts-node scripts/configure-oauth.ts",
+    "config:oauth-simple": "./configure-oauth-env.sh",
+    "config:oauth-unified": "ts-node scripts/unified-oauth-setup.ts",
+    "config:validate": "ts-node scripts/validate-oauth.ts",
+    "setup:developer": "./scripts/inject-dev-env.sh",
+    "security:audit-developer": "git log --author=$DEVELOPER_EMAIL --pretty=format:'%h %s %ad' --date=short -n 10",
+    "team:offboard": "node -r ts-node/register src/cli/unified-team-cli.ts offboard",
+    "team": "node -r ts-node/register src/cli/unified-team-cli.ts",
+    "team:onboard": "node -r ts-node/register src/cli/unified-team-cli.ts onboard",
+    "team:list": "node -r ts-node/register src/cli/unified-team-cli.ts list",
+    "team:audit": "node -r ts-node/register src/cli/unified-team-cli.ts audit",
+    "team:status": "node -r ts-node/register src/cli/unified-team-cli.ts list",
+    "team:checklist": "cat docs/developer-offboarding-checklist.md",
+    "team:inject-env": "node -r ts-node/register src/cli/unified-team-cli.ts inject-env",
+    "team:update-role": "node -r ts-node/register src/cli/unified-team-cli.ts update-role",
+    "team:validate-oauth": "node -r ts-node/register src/cli/unified-team-cli.ts validate-oauth",
+    "team:help": "node -r ts-node/register src/cli/unified-team-cli.ts",
+    "setup:complete": "ts-node scripts/setup-integration.ts",
+    "setup:minimal-privacy": "./scripts/setup-minimal-privacy.sh",
+    "sql:setup": "supabase db push",
+    "sql:editor": "echo 'Open Supabase SQL Editor: https://supabase.com/dashboard/project/ecgexzqtuhgdinohychp/sql'",
+    "privacy:validate": "node -r ts-node/register -e 'import(\"./src/examples/supabase-integration-examples\").then(m => m.default.performSystemHealthCheck())'",
+    "ai:ecosystem": "node -r ts-node/register src/cli/unified-ai-cli.ts",
+    "ai:init": "npm run ai:ecosystem ecosystem:init",
+    "ai:status": "npm run ai:ecosystem ecosystem:status",
+    "ai:status:detailed": "npm run ai:ecosystem ecosystem:status --detailed",
+    "ai:optimize": "npm run ai:ecosystem ecosystem:optimize",
+    "ai:optimize:cost": "npm run ai:ecosystem ecosystem:optimize --type cost",
+    "ai:optimize:performance": "npm run ai:ecosystem ecosystem:optimize --type performance",
+    "ai:bot:create": "npm run ai:ecosystem bot:create",
+    "ai:bot:list": "npm run ai:ecosystem bot:list",
+    "ai:models:discover": "npm run ai:ecosystem models:discover",
+    "ai:models:list": "npm run ai:ecosystem models:list",
+    "ai:task:submit": "npm run ai:ecosystem task:submit",
+    "ai:task:templates": "npm run ai:ecosystem task:templates",
+    "ai:config:generate": "npm run ai:ecosystem config:generate",
+    "ai:monitor": "npm run ai:ecosystem monitor",
+    "demo:unified-ai": "ts-node src/examples/unified-ai-integration-demo.ts",
+    "demo:unified-ai:scenarios": "ts-node src/examples/unified-ai-integration-demo.ts scenarios",
+    "demo:unified-ai:cli": "ts-node src/examples/unified-ai-integration-demo.ts cli",
+    "demo:unified-ai:all": "ts-node src/examples/unified-ai-integration-demo.ts all",
+    "test:enterprise": "jest --config jest.config.enterprise.js",
+    "test:performance": "jest --config jest.config.enterprise.js --selectProjects performance",
+    "test:coverage:enterprise": "jest --config jest.config.enterprise.js --coverage"
   },
   "bin": {
     "sherlock-bot": "./dist/ai/cli/bot-cli.js"
@@ -162,36 +210,16 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/ws": "^8.18.1",
-    "@typescript-eslint/eslint-plugin": "^6.7.0",
-    "@typescript-eslint/parser": "^6.7.0",
-    "eslint": "^8.49.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.test.ts"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/**/*.d.ts",
-      "!src/**/__tests__/**"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 90,
-        "functions": 90,
-        "lines": 90,
-        "statements": 90
-      }
-    }
+  "optionalDependencies": {
+    "@quantum/core": "*"
   }
 }

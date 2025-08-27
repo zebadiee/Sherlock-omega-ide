@@ -31,7 +31,7 @@ interface PerformanceMetrics {
 
 const QuantumErrorCorrectionVisualizer: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number>(0);
   const [isRunning, setIsRunning] = useState(false);
   const [surfaceCode, setSurfaceCode] = useState<SurfaceCodeCell[][]>([]);
   const [errors, setErrors] = useState<QuantumError[]>([]);
@@ -70,13 +70,15 @@ const QuantumErrorCorrectionVisualizer: React.FC = () => {
           type = 'x_stabilizer'; // Corner stabilizers
         }
         
-        grid[y][x] = {
-          x,
-          y,
-          type,
-          state: Math.random() > 0.5 ? 1 : 0,
-          hasError: false
-        };
+        if (grid[y]) {
+          grid[y][x] = {
+            x,
+            y,
+            type,
+            state: Math.random() > 0.5 ? 1 : 0,
+            hasError: false
+          };
+        }
       }
     }
     
@@ -98,18 +100,21 @@ const QuantumErrorCorrectionVisualizer: React.FC = () => {
             ['bit_flip', 'phase_flip', 'depolarizing'];
           const errorType = errorTypes[Math.floor(Math.random() * errorTypes.length)];
           
-          newErrors.push({
-            x,
-            y,
-            type: errorType,
-            severity: Math.random(),
-            timestamp: currentTime,
-            corrected: false
-          });
-          
-          // Update cell state
-          cell.hasError = true;
-          cell.errorType = errorType === 'depolarizing' ? 'bit_flip' : errorType;
+          // Ensure errorType is valid before using it
+          if (errorType) {
+            newErrors.push({
+              x,
+              y,
+              type: errorType,
+              severity: Math.random(),
+              timestamp: currentTime,
+              corrected: false
+            });
+            
+            // Update cell state
+            cell.hasError = true;
+            cell.errorType = errorType === 'depolarizing' ? 'bit_flip' : errorType;
+          }
         }
       });
     });
@@ -147,7 +152,7 @@ const QuantumErrorCorrectionVisualizer: React.FC = () => {
       ...prev,
       errorRate: currentErrorRate,
       correctionSuccess: totalErrors > 0 ? correctedErrors / totalErrors : 1,
-      memoryUsage: Math.round((errors.length * 64 + surfaceCode.length * surfaceCode[0]?.length * 32) / 1024) // KB
+      memoryUsage: Math.round((errors.length * 64 + surfaceCode.length * (surfaceCode[0]?.length || 0) * 32) / 1024) // KB
     }));
   }, [errors, surfaceCode, isRunning]);
 
@@ -181,7 +186,7 @@ const QuantumErrorCorrectionVisualizer: React.FC = () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     const cellSize = Math.min(canvas.width, canvas.height) / (surfaceCode.length + 2);
-    const offsetX = (canvas.width - surfaceCode[0]?.length * cellSize) / 2;
+    const offsetX = (canvas.width - (surfaceCode[0]?.length || 0) * cellSize) / 2;
     const offsetY = (canvas.height - surfaceCode.length * cellSize) / 2;
     
     // Render surface code grid with quantum-optimized colors

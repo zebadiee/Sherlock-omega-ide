@@ -512,13 +512,17 @@ export class ProjectAnalyzer {
     const es6ImportRegex = /import\s+.*?from\s+['"]([^'"]+)['"];?/g;
     let match;
     while ((match = es6ImportRegex.exec(content)) !== null) {
-      imports.push(match[1]);
+      if (match[1]) {
+        imports.push(match[1]);
+      }
     }
 
     // CommonJS requires
     const requireRegex = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
     while ((match = requireRegex.exec(content)) !== null) {
-      imports.push(match[1]);
+      if (match[1]) {
+        imports.push(match[1]);
+      }
     }
 
     return imports;
@@ -691,49 +695,55 @@ export class ProjectAnalyzer {
       const functionRegex = /(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(/g;
       let match;
       while ((match = functionRegex.exec(content)) !== null) {
-        const line = content.substring(0, match.index).split('\n').length;
-        symbols.push({
-          name: match[1],
-          type: 'function',
-          kind: 'function',
-          file: file.path,
-          line,
-          scope: match[0].includes('export') ? 'public' : 'private',
-          isExported: match[0].includes('export'),
-          usageCount: 0
-        });
+        if (match[1]) {
+          const line = content.substring(0, match.index).split('\n').length;
+          symbols.push({
+            name: match[1],
+            type: 'function',
+            kind: 'function',
+            file: file.path,
+            line,
+            scope: match[0].includes('export') ? 'public' : 'private',
+            isExported: match[0].includes('export'),
+            usageCount: 0
+          });
+        }
       }
 
       // Extract classes
       const classRegex = /(?:export\s+)?class\s+(\w+)/g;
       while ((match = classRegex.exec(content)) !== null) {
-        const line = content.substring(0, match.index).split('\n').length;
-        symbols.push({
-          name: match[1],
-          type: 'class',
-          kind: 'class',
-          file: file.path,
-          line,
-          scope: match[0].includes('export') ? 'public' : 'private',
-          isExported: match[0].includes('export'),
-          usageCount: 0
-        });
+        if (match[1]) {
+          const line = content.substring(0, match.index).split('\n').length;
+          symbols.push({
+            name: match[1],
+            type: 'class',
+            kind: 'class',
+            file: file.path,
+            line,
+            scope: match[0].includes('export') ? 'public' : 'private',
+            isExported: match[0].includes('export'),
+            usageCount: 0
+          });
+        }
       }
 
       // Extract interfaces (TypeScript)
       const interfaceRegex = /(?:export\s+)?interface\s+(\w+)/g;
       while ((match = interfaceRegex.exec(content)) !== null) {
-        const line = content.substring(0, match.index).split('\n').length;
-        symbols.push({
-          name: match[1],
-          type: 'interface',
-          kind: 'interface',
-          file: file.path,
-          line,
-          scope: match[0].includes('export') ? 'public' : 'private',
-          isExported: match[0].includes('export'),
-          usageCount: 0
-        });
+        if (match[1]) {
+          const line = content.substring(0, match.index).split('\n').length;
+          symbols.push({
+            name: match[1],
+            type: 'interface',
+            kind: 'interface',
+            file: file.path,
+            line,
+            scope: match[0].includes('export') ? 'public' : 'private',
+            isExported: match[0].includes('export'),
+            usageCount: 0
+          });
+        }
       }
 
     } catch (error) {

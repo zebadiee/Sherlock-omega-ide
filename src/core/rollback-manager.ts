@@ -249,7 +249,7 @@ export class RollbackManager {
       
       return files;
     } catch (error) {
-      this.logger.warn(`Failed to capture directory state: ${dirPath}`, {}, error as Error);
+      this.logger.warn(`Failed to capture directory state: ${dirPath}`, { error: (error as Error).message });
       return [];
     }
   }

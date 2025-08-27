@@ -1,46 +1,50 @@
-name: Sherlock Ω CI/CD Pipeline
+name: Sherlock Ω IDE - CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, feature/* ]
   pull_request:
-    branches: [ main ]
-  schedule:
-    # Run daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - quantum
+          - ai
+          - integration
+          - security
+      deploy_environment:
+        description: 'Environment to deploy to'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
 
 env:
   NODE_VERSION: '18'
-  MONGO_URI: mongodb://localhost:27017/sherlock_test
+  CACHE_VERSION: v1
 
 jobs:
-  infrastructure:
-    name: Infrastructure Setup
+  # ============================================================================
+  # Code Quality & Security Analysis
+  # ============================================================================
+  code-quality:
+    name: Code Quality Analysis
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      
-      redis:
-        image: redis:alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    outputs:
+      coverage: ${{ steps.coverage.outputs.coverage }}
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -48,232 +52,384 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Wait for services
+      - name: Install Dependencies
         run: |
-          echo "Waiting for MongoDB..."
-          timeout 30 bash -c 'until mongosh --eval "db.adminCommand(\"ping\")" > /dev/null 2>&1; do sleep 1; done'
-          echo "Waiting for Redis..."
-          timeout 30 bash -c 'until redis-cli ping > /dev/null 2>&1; do sleep 1; done'
+          npm ci
+          npm run quantum:install
 
-      - name: Check infrastructure
-        run: npm run ci-cd:infrastructure
+      - name: Lint and Format Check
+        run: |
+          npm run lint
+          npm run format:check
 
-  build:
-    name: Build & Test
-    runs-on: ubuntu-latest
-    needs: infrastructure
-    
-    strategy:
-      matrix:
-        algorithm: ['Bell State', 'Grover Search', 'Quantum Fourier Transform']
-        
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+      - name: Type Check
+        run: |
+          npm run type-check
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Run Tests with Coverage
+        run: |
+          npm run test -- --coverage --watchAll=false
+        env:
+          CI: true
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+      - name: Extract Coverage
+        id: coverage
+        run: |
+          COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build TypeScript
-        run: npm run build
-
-      - name: Run tests
-        run: npm test -- --coverage --passWithNoTests
-
-      - name: Upload coverage reports
+      - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
+          directory: ./coverage/
 
-      - name: Run quantum simulation
-        run: |
-          echo "Running quantum simulation for: ${{ matrix.algorithm }}"
-          # Simulate the CI/CD build for each algorithm
-          timeout 300 npm run demo:ci-cd-quick || echo "Demo completed with timeout"
-
-      - name: Generate build report
-        run: |
-          echo "## Build Report for ${{ matrix.algorithm }}" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ TypeScript compilation: SUCCESS" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Unit tests: PASSED" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Quantum simulation: COMPLETED" >> $GITHUB_STEP_SUMMARY
-          echo "- 📊 Test coverage: $(npm test -- --coverage --silent | grep -o '[0-9]*\.[0-9]*%' | head -1)" >> $GITHUB_STEP_SUMMARY
-
-  quantum-validation:
-    name: Quantum Algorithm Validation
-    runs-on: ubuntu-latest
-    needs: build
-    
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Validate quantum algorithms
-        run: |
-          echo "🔬 Validating quantum algorithms..."
-          
-          # Test Bell State
-          echo "Testing Bell State algorithm..."
-          timeout 60 npm run demo:ci-cd-quick || echo "Bell State test completed"
-          
-          # Test with noise
-          echo "Testing with noise model..."
-          timeout 60 npm run demo:ci-cd-quick || echo "Noise test completed"
-
-      - name: Generate quantum report
-        run: |
-          echo "## Quantum Validation Report" >> $GITHUB_STEP_SUMMARY
-          echo "- ⚛️ Bell State: Fidelity > 95%" >> $GITHUB_STEP_SUMMARY
-          echo "- 🌪️ Noise Model: Validated" >> $GITHUB_STEP_SUMMARY
-          echo "- 🚀 Quantum Advantage: 2.0x+" >> $GITHUB_STEP_SUMMARY
-
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run security audit
-        run: |
-          echo "🔒 Running security audit..."
-          npm audit --audit-level moderate || echo "Security audit completed with warnings"
-
-      - name: Check for vulnerabilities
-        run: |
-          echo "Checking for known vulnerabilities..."
-          npm audit --json > audit-results.json || true
-          
-          # Count vulnerabilities
-          HIGH_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
-          CRITICAL_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
-          
-          echo "High vulnerabilities: $HIGH_VULNS"
-          echo "Critical vulnerabilities: $CRITICAL_VULNS"
-          
-          if [ "$CRITICAL_VULNS" -gt 0 ]; then
-            echo "❌ Critical vulnerabilities found!"
-            exit 1
-          fi
-
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
-    needs: [build, quantum-validation, security-scan]
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build for production
-        run: npm run build
-
-      - name: Create deployment package
-        run: |
-          echo "📦 Creating deployment package..."
-          tar -czf sherlock-omega-${{ github.sha }}.tar.gz \
-            dist/ \
-            package.json \
-            package-lock.json \
-            docker-compose.yml \
-            README.md
-
-      - name: Upload deployment artifact
+      - name: Archive Coverage Reports
         uses: actions/upload-artifact@v3
         with:
-          name: sherlock-omega-deployment
-          path: sherlock-omega-${{ github.sha }}.tar.gz
-          retention-days: 30
+          name: coverage-reports
+          path: coverage/
 
-      - name: Simulate deployment
-        run: |
-          echo "🚀 Simulating deployment to production..."
-          echo "Deployment URL: https://sherlock-omega-${{ github.sha }}.quantum-cloud.io"
-          echo "Version: $(node -p "require('./package.json').version")"
-          echo "Build: ${{ github.sha }}"
-
-      - name: Generate deployment report
-        run: |
-          echo "## 🚀 Deployment Report" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ✅ SUCCESS" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: $(node -p "require('./package.json').version")" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **URL**: https://sherlock-omega-${{ github.sha }}.quantum-cloud.io" >> $GITHUB_STEP_SUMMARY
-          echo "- **Timestamp**: $(date -u)" >> $GITHUB_STEP_SUMMARY
-
-  notify:
-    name: Notify
+  # ============================================================================
+  # Security Scanning
+  # ============================================================================
+  security-scan:
+    name: Security Vulnerability Scan
     runs-on: ubuntu-latest
-    needs: [deploy]
-    if: always()
-
+    if: github.event_name == 'push' || github.event.inputs.test_suite == 'security'
     steps:
-      - name: Notify success
-        if: needs.deploy.result == 'success'
-        run: |
-          echo "✅ CI/CD Pipeline completed successfully!"
-          echo "🎉 Sherlock Ω has been deployed to production"
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Notify failure
-        if: failure()
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run npm audit
         run: |
-          echo "❌ CI/CD Pipeline failed!"
-          echo "🔧 Please check the logs and fix any issues"
+          npm audit --audit-level=moderate
+          npm audit fix --dry-run
+
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: SAST with CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  # ============================================================================
+  # Quantum Algorithm Testing
+  # ============================================================================
+  quantum-tests:
+    name: Quantum Algorithm Tests
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.event.head_commit.message, 'quantum') || 
+      github.event.inputs.test_suite == 'quantum' ||
+      github.event.inputs.test_suite == 'all'
+    strategy:
+      matrix:
+        quantum-backend: ['simulator', 'qasm']
+        algorithm: ['basic', 'advanced']
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python for Quantum Libraries
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm run quantum:install
+          pip install qiskit qiskit-aer
+
+      - name: Run Quantum Algorithm Tests
+        run: |
+          npm run test:quantum -- --backend=${{ matrix.quantum-backend }}
+        env:
+          QUANTUM_TEST_MODE: ci
+          QUANTUM_BACKEND: ${{ matrix.quantum-backend }}
+          ALGORITHM_SUITE: ${{ matrix.algorithm }}
+
+      - name: Quantum Performance Benchmarks
+        if: matrix.quantum-backend == 'simulator'
+        run: |
+          npm run benchmark:quantum
+          
+      - name: Upload Quantum Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: quantum-test-results-${{ matrix.quantum-backend }}-${{ matrix.algorithm }}
+          path: |
+            quantum-test-results/
+            quantum-benchmarks/
+
+  # ============================================================================
+  # AI/ML Integration Tests
+  # ============================================================================
+  ai-tests:
+    name: AI/ML Integration Tests
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.event.head_commit.message, 'ai') || 
+      github.event.inputs.test_suite == 'ai' ||
+      github.event.inputs.test_suite == 'all'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run AI Integration Tests
+        run: npm run test:ai
+        env:
+          # Use mock API keys for testing
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_TEST }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_TEST }}
+          AI_TEST_MODE: mock
+
+      - name: Test Bot Builder Functionality
+        run: npm run test:bot-builder
+
+      - name: Validate AI Model Responses
+        run: npm run test:ai-validation
+
+  # ============================================================================
+  # Cross-Platform Build Tests
+  # ============================================================================
+  build-test:
+    name: Build Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: ['18', '20']
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Test Build Artifacts
+        run: |
+          npm run test:build
+          npm run test:integration
+
+      - name: Package for Distribution
+        if: matrix.os == 'ubuntu-latest' && matrix.node-version == '18'
+        run: npm run package
+
+      - name: Upload Build Artifacts
+        if: matrix.os == 'ubuntu-latest' && matrix.node-version == '18'
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            package/
+
+  # ============================================================================
+  # Performance Testing
+  # ============================================================================
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: [code-quality]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Performance Benchmarks
+        run: |
+          npm run benchmark:all
+          npm run benchmark:memory
+          npm run benchmark:startup
+
+      - name: Upload Performance Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-reports
+          path: benchmarks/
+
+  # ============================================================================
+  # Docker Build and Test
+  # ============================================================================
+  docker-build:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Docker Image
+        run: |
+          docker run --rm ghcr.io/${{ github.repository }}:latest npm test
+
+  # ============================================================================
+  # Deployment
+  # ============================================================================
+  deploy:
+    name: Deploy to ${{ github.event.inputs.deploy_environment || 'staging' }}
+    runs-on: ubuntu-latest
+    needs: [code-quality, build-test, security-scan]
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event.inputs.deploy_environment
+    environment: ${{ github.event.inputs.deploy_environment || 'staging' }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+          path: ./artifacts
+
+      - name: Deploy to Staging
+        if: github.event.inputs.deploy_environment == 'staging' || github.ref == 'refs/heads/main'
+        run: |
+          echo "Deploying to staging environment..."
+          # Add deployment script here
+
+      - name: Deploy to Production
+        if: github.event.inputs.deploy_environment == 'production'
+        run: |
+          echo "Deploying to production environment..."
+          # Add production deployment script here
+
+      - name: Update Deployment Status
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/deployments \
+            -d '{
+              "ref": "${{ github.sha }}",
+              "environment": "${{ github.event.inputs.deploy_environment || 'staging' }}",
+              "description": "Automated deployment via GitHub Actions"
+            }'
+
+  # ============================================================================
+  # Notification and Reporting
+  # ============================================================================
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [code-quality, security-scan, quantum-tests, ai-tests, build-test]
+    if: always()
+    steps:
+      - name: Prepare Status Report
+        id: status
+        run: |
+          if [[ "${{ needs.code-quality.result }}" == "success" && 
+                "${{ needs.security-scan.result }}" == "success" && 
+                "${{ needs.build-test.result }}" == "success" ]]; then
+            echo "status=✅ All checks passed" >> $GITHUB_OUTPUT
+            echo "color=good" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ Some checks failed" >> $GITHUB_OUTPUT
+            echo "color=danger" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post to Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#sherlock-omega-ci'
+          text: |
+            ${{ steps.status.outputs.status }}
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Coverage: ${{ needs.code-quality.outputs.coverage }}%
+            
+            View Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

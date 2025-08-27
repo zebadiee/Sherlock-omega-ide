@@ -115,7 +115,8 @@ export class QuantumDashboard {
 
         const description = algorithmMap[algorithm];
         if (!description) {
-          return res.status(400).json({ error: 'Unknown algorithm' });
+          res.status(400).json({ error: 'Unknown algorithm' });
+          return;
         }
 
         const result = await this.evolutionManager.simulateWithErrorHandling(description, {

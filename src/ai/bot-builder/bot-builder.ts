@@ -247,7 +247,7 @@ export class BotBuilder extends EventEmitter implements IBotBuilder {
 
     for (const pattern of patterns) {
       const match = description.match(pattern);
-      if (match) {
+      if (match && match[1]) {
         return match[1].trim();
       }
     }

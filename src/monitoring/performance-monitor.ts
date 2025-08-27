@@ -28,16 +28,38 @@ export interface OperationMetrics {
   metadata?: any;
 }
 
+export enum MetricType {
+  EXECUTION_TIME = 'execution_time',
+  MEMORY_USAGE = 'memory_usage',
+  CPU_USAGE = 'cpu_usage',
+  ERROR_RATE = 'error_rate',
+  THROUGHPUT = 'throughput',
+  RESPONSE_TIME = 'response_time'
+}
+
 export class PerformanceMonitor {
   private logger: Logger;
   private startTime: number;
   private operations: Map<string, OperationMetrics> = new Map();
   private completedOperations: OperationMetrics[] = [];
   private maxHistorySize: number = 1000;
+  private cleanupInterval?: NodeJS.Timeout;
+  private metrics: Map<string, any> = new Map();
 
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor(loggerOrConfig: Logger | any) {
+    // Handle both Logger instances and other config types
+    if (loggerOrConfig && typeof loggerOrConfig.info === 'function') {
+      this.logger = loggerOrConfig;
+    } else {
+      // Create a new logger if not provided or if config is provided
+      this.logger = new Logger();
+    }
     this.startTime = Date.now();
+    
+    // Start cleanup interval
+    this.cleanupInterval = setInterval(() => {
+      this.cleanup();
+    }, 60000); // Cleanup every minute
   }
 
   /**
@@ -112,7 +134,7 @@ export class PerformanceMonitor {
     const throughput = totalOperations > 0 ? totalOperations / (uptime / 1000) : 0;
 
     return {
-      cpuUsage: (cpuUsage.user + cpuUsage.system) / 1000000, // Convert to milliseconds
+      cpuUsage: (cpuUsage.user + cpuUsage.system) / 1000000,
       memoryUsage: {
         used: memUsage.heapUsed,
         total: memUsage.heapTotal,
@@ -120,9 +142,22 @@ export class PerformanceMonitor {
       },
       responseTime: avgResponseTime,
       throughput,
-      errorRate: errorRate * 100, // Convert to percentage
+      errorRate: errorRate * 100,
       uptime
     };
+  }
+
+  /**
+   * Get specific metrics by name
+   */
+  getMetricsByName(name: string): any[] {
+    const results: any[] = [];
+    for (const [key, metric] of this.metrics.entries()) {
+      if (key.startsWith(name)) {
+        results.push(metric);
+      }
+    }
+    return results;
   }
 
   /**
@@ -172,6 +207,66 @@ export class PerformanceMonitor {
   }
 
   /**
+   * Time an async operation and record metrics
+   */
+  async timeAsync<T>(name: string, operation: () => Promise<T>): Promise<T> {
+    const operationId = this.startOperation(name);
+    
+    try {
+      const result = await operation();
+      this.endOperation(operationId, true);
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.endOperation(operationId, false, errorMessage);
+      throw error;
+    }
+  }
+
+  /**
+   * Time a synchronous operation and record metrics
+   */
+  timeSync<T>(name: string, operation: () => T): T {
+    const operationId = this.startOperation(name);
+    
+    try {
+      const result = operation();
+      this.endOperation(operationId, true);
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.endOperation(operationId, false, errorMessage);
+      throw error;
+    }
+  }
+
+  /**
+   * Record a metric value
+   */
+  recordMetric(name: string, value: number, type: MetricType | string, context?: Record<string, unknown>): void {
+    const metric = {
+      name,
+      value,
+      type: typeof type === 'string' ? type : (type as string),
+      timestamp: Date.now(),
+      context
+    };
+    
+    this.metrics.set(`${name}-${Date.now()}`, metric);
+    this.logger.debug(`Recorded metric: ${name}`, { value, type, context });
+  }
+
+  /**
+   * Stop the cleanup interval (called during shutdown)
+   */
+  stopCleanupInterval(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+  }
+
+  /**
    * Clear operation history
    */
   clearHistory(): void {
@@ -194,6 +289,86 @@ export class PerformanceMonitor {
       uptime: process.uptime(),
       loadAverage: process.platform !== 'win32' ? require('os').loadavg() : undefined
     };
+  }
+
+  /**
+   * Get performance summary
+   */
+  getPerformanceSummary(): any {
+    return {
+      metrics: this.getMetrics(),
+      operations: this.getOperationStats(),
+      uptime: Date.now() - this.startTime,
+      resourceUsage: this.getResourceUsage()
+    };
+  }
+
+  /**
+   * Get evolution metrics
+   */
+  async getEvolutionMetrics(): Promise<any> {
+    const baseMetrics = this.getMetrics();
+    const stats = this.getOperationStats();
+    return {
+      ...baseMetrics,
+      evolutionCycles: this.completedOperations.filter(op => op.name.includes('evolution')).length,
+      adaptationRate: stats.successRate,
+      systemHealth: baseMetrics.errorRate < 10 ? 'healthy' : 'degraded'
+    };
+  }
+
+  /**
+   * Get performance metrics (alias for compatibility)
+   */
+  async getPerformanceMetrics(): Promise<PerformanceMetrics> {
+    return this.getMetrics();
+  }
+
+  /**
+   * Identify system bottlenecks
+   */
+  async identifyBottlenecks(): Promise<string[]> {
+    const stats = this.getOperationStats();
+    const bottlenecks: string[] = [];
+    
+    if (stats.averageDuration > 5000) {
+      bottlenecks.push('High average operation duration');
+    }
+    
+    if (stats.successRate < 90) {
+      bottlenecks.push('Low success rate');
+    }
+    
+    const metrics = this.getMetrics();
+    if (metrics.memoryUsage.percentage > 80) {
+      bottlenecks.push('High memory usage');
+    }
+    
+    return bottlenecks;
+  }
+
+  /**
+   * Cleanup old metrics and operations
+   */
+  private cleanup(): void {
+    const cutoff = Date.now() - (24 * 60 * 60 * 1000); // 24 hours
+    
+    // Clean old metrics
+    for (const [key, metric] of this.metrics.entries()) {
+      if (metric.timestamp < cutoff) {
+        this.metrics.delete(key);
+      }
+    }
+  }
+
+  /**
+   * Destroy monitor and cleanup resources
+   */
+  destroy(): void {
+    this.stopCleanupInterval();
+    this.operations.clear();
+    this.completedOperations = [];
+    this.metrics.clear();
   }
 
   /**

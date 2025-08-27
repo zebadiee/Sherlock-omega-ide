@@ -26,8 +26,15 @@ export class Logger {
   private logHistory: LogEntry[] = [];
   private maxHistorySize: number = 1000;
 
-  constructor(level: LogLevel = LogLevel.INFO) {
-    this.logLevel = level;
+  constructor(level: LogLevel | string | number = LogLevel.INFO) {
+    // Handle different input types for better compatibility
+    if (typeof level === 'string') {
+      this.logLevel = LogLevel.INFO; // Default for string inputs
+    } else if (typeof level === 'number' && level >= 0 && level <= 4) {
+      this.logLevel = level;
+    } else {
+      this.logLevel = LogLevel.INFO;
+    }
   }
 
   debug(message: string, data?: any, source?: string): void {
@@ -42,8 +49,42 @@ export class Logger {
     this.log(LogLevel.WARN, message, data, source);
   }
 
-  error(message: string, data?: any, source?: string): void {
-    this.log(LogLevel.ERROR, message, data, source);
+  error(message: string, data?: any, source?: string | Error): void {
+    let errorData = data;
+    let errorSource: string | undefined;
+    
+    // Handle Error objects passed as source parameter
+    if (source instanceof Error) {
+      errorData = {
+        ...data,
+        error: {
+          message: source.message,
+          stack: source.stack,
+          name: source.name
+        }
+      };
+      errorSource = source.constructor.name;
+    } else {
+      errorSource = source;
+    }
+    
+    this.log(LogLevel.ERROR, message, errorData, errorSource);
+  }
+
+  /**
+   * Enhanced error method that accepts Error objects directly
+   */
+  logError(error: Error, context?: any, source?: string): void {
+    this.error(
+      error.message,
+      {
+        ...context,
+        errorName: error.name,
+        stack: error.stack,
+        cause: error.cause
+      },
+      source || error.constructor.name
+    );
   }
 
   fatal(message: string, data?: any, source?: string): void {

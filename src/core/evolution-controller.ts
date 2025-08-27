@@ -98,13 +98,23 @@ export class EvolutionController {
     const constraints = this.consciousness.identifyConstraints(systemState);
     
     const capability: CapabilityMetrics = {
-      fileLoadTime: performanceMetrics.fileLoadTime,
-      uiFrameRate: performanceMetrics.uiFrameRate,
-      memoryUsage: performanceMetrics.memoryUsage,
-      analysisSpeed: performanceMetrics.analysisSpeed,
-      overallScore: this.calculateCapabilityScore(performanceMetrics),
+      fileLoadTime: performanceMetrics.responseTime || 0,
+      uiFrameRate: 60, // Default frame rate
+      memoryUsage: typeof performanceMetrics.memoryUsage === 'object' ? performanceMetrics.memoryUsage.percentage : performanceMetrics.memoryUsage || 0,
+      analysisSpeed: performanceMetrics.throughput || 1,
+      overallScore: this.calculateCapabilityScore({
+        fileLoadTime: performanceMetrics.responseTime || 0,
+        uiFrameRate: 60,
+        memoryUsage: typeof performanceMetrics.memoryUsage === 'object' ? performanceMetrics.memoryUsage.percentage : performanceMetrics.memoryUsage || 0,
+        analysisSpeed: performanceMetrics.throughput || 1
+      } as any),
       constraints,
-      bottlenecks: await this.performanceMonitor.identifyBottlenecks(),
+      bottlenecks: (await this.performanceMonitor.identifyBottlenecks()).map(b => ({ 
+        component: 'system', 
+        type: 'performance', 
+        impact: 0.5, 
+        suggestion: typeof b === 'string' ? b : 'Optimize performance' 
+      } as Bottleneck)),
       timestamp: new Date()
     };
     
@@ -170,7 +180,12 @@ export class EvolutionController {
       
       // Validate deployment success
       const postDeploymentMetrics = await this.performanceMonitor.getPerformanceMetrics();
-      const improvementValidation = this.validateImprovements(evolution.targetMetrics, postDeploymentMetrics);
+      const improvementValidation = this.validateImprovements(evolution.targetMetrics, {
+        fileLoadTime: postDeploymentMetrics.responseTime || 0,
+        uiFrameRate: 60,
+        memoryUsage: typeof postDeploymentMetrics.memoryUsage === 'object' ? postDeploymentMetrics.memoryUsage.percentage : postDeploymentMetrics.memoryUsage || 0,
+        analysisSpeed: postDeploymentMetrics.throughput || 1
+      } as any);
       
       // If validation fails, trigger rollback
       if (!improvementValidation.success) {

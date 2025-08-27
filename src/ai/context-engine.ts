@@ -486,13 +486,15 @@ export class ContextEngine implements IContextEngine {
     let match;
 
     while ((match = functionRegex.exec(content)) !== null) {
-      functions.push({
-        name: match[1],
-        parameters: [], // Would be extracted from AST
-        returnType: 'unknown',
-        startLine: content.substring(0, match.index).split('\n').length - 1,
-        endLine: 0 // Would be calculated from AST
-      });
+      if (match[1]) {
+        functions.push({
+          name: match[1],
+          parameters: [], // Would be extracted from AST
+          returnType: 'unknown',
+          startLine: content.substring(0, match.index).split('\n').length - 1,
+          endLine: 0 // Would be calculated from AST
+        });
+      }
     }
 
     return functions;

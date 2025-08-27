@@ -169,7 +169,15 @@ export class FullSherlockIDE {
     req.on('end', async () => {
       try {
         const { command } = JSON.parse(body);
-        const terminalId = url.split('/')[3];
+        const urlParts = url.split('/');
+        const terminalId = urlParts.length > 3 ? urlParts[3] : undefined;
+        
+        if (!terminalId) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Terminal ID required' }));
+          return;
+        }
+        
         const terminal = this.terminals.get(terminalId);
         
         if (!terminal) {
@@ -179,7 +187,7 @@ export class FullSherlockIDE {
         }
 
         const stdin = terminal.stdin ?? process.stdin;
-        if (stdin && 'write' in stdin) {
+        if (stdin && typeof stdin === 'object' && 'write' in stdin && typeof stdin.write === 'function') {
           stdin.write(command + '\n');
         }
         res.writeHead(200, { 'Content-Type': 'application/json' });
