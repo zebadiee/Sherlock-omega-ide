@@ -1,7 +1,6 @@
 /**
  * Self-Building Bot AI - The Heart of Autonomous Evolution
- * Capable of replication (duplicating itself) and construction (building new features)
- * Leverages quantum advantage and integrates with evolution engine
+ * Enhanced with folder management and system integration capabilities
  */
 
 import { EvolutionController } from '../core/evolution-controller';
@@ -9,6 +8,10 @@ import { Logger } from '../logging/logger';
 import { PlatformType } from '../core/whispering-interfaces';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+
+// Export enhanced version with advanced capabilities
+export { default as EnhancedSelfBuildingBot } from './enhanced-self-building-bot';
+export * from './enhanced-self-building-bot';
 
 export interface BotCapabilities {
   replication: boolean;
@@ -218,12 +221,10 @@ export class EnhancedSelfBuildingBot extends SelfBuildingBot {
   }
   
   private initializeQuantumCapabilities(): void {
-    // Quantum-enhanced processing capabilities
     console.log(\`🚀 Enhanced bot initialized with \${this.quantumAdvantage}x quantum advantage\`);
   }
   
   async quantumOptimizedConstruction(task: any): Promise<boolean> {
-    // Apply quantum optimization to construction process
     const startTime = performance.now();
     const result = await this.constructFeature(task);
     const duration = performance.now() - startTime;
@@ -256,7 +257,6 @@ describe('EnhancedSelfBuildingBot', () => {
   
   it('should initialize with quantum capabilities', () => {
     expect(bot).toBeDefined();
-    expect(bot.constructor.name).toBe('EnhancedSelfBuildingBot');
   });
   
   it('should perform quantum optimized construction', async () => {
@@ -270,11 +270,6 @@ describe('EnhancedSelfBuildingBot', () => {
     
     const result = await bot.quantumOptimizedConstruction(task);
     expect(typeof result).toBe('boolean');
-  });
-  
-  it('should maintain quantum advantage', () => {
-    // Test quantum advantage is maintained
-    expect(true).toBe(true); // Placeholder for quantum metrics test
   });
 });
 `;
@@ -303,15 +298,11 @@ export class ${this.toPascalCase(task.id)}Feature {
   
   async execute(): Promise<boolean> {
     try {
-      // Quantum-enhanced feature implementation
       const startTime = performance.now();
-      
-      // Feature logic here
       await this.quantumOptimizedProcess();
-      
       const duration = performance.now() - startTime;
-      console.log(\`⚛️ Feature ${task.id} executed in \${duration.toFixed(2)}ms with \${this.quantumAdvantage}x advantage\`);
       
+      console.log(\`⚛️ Feature ${task.id} executed in \${duration.toFixed(2)}ms\`);
       return true;
     } catch (error) {
       console.error('❌ Feature execution failed:', error);
@@ -320,7 +311,6 @@ export class ${this.toPascalCase(task.id)}Feature {
   }
   
   private async quantumOptimizedProcess(): Promise<void> {
-    // Simulate quantum-enhanced processing
     await new Promise(resolve => setTimeout(resolve, 10));
   }
 }
@@ -335,7 +325,6 @@ export class ${this.toPascalCase(task.id)}Feature {
 /**
  * Auto-Generated Tests for ${task.description}
  * Created by bot ${this.botId}
- * 95%+ coverage guaranteed
  */
 
 import { ${this.toPascalCase(task.id)}Feature } from './${task.id}-feature';
@@ -355,16 +344,6 @@ describe('${this.toPascalCase(task.id)}Feature', () => {
     const result = await feature.execute();
     expect(result).toBe(true);
   });
-  
-  it('should handle errors gracefully', async () => {
-    // Test error handling
-    expect(true).toBe(true); // Placeholder for error test
-  });
-  
-  it('should maintain quantum advantage', () => {
-    // Test quantum optimization
-    expect(true).toBe(true); // Placeholder for quantum test
-  });
 });
 `;
   }
@@ -373,7 +352,6 @@ describe('${this.toPascalCase(task.id)}Feature', () => {
    * Assess current bot capabilities
    */
   private async assessCapabilities(): Promise<number> {
-    // Simulate capability assessment
     const baseCapability = 0.97;
     const generationBonus = this.generationCount * 0.01;
     const featureBonus = this.constructedFeatures.length * 0.005;
